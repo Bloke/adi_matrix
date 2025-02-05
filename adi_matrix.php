@@ -1,131 +1,144 @@
 <?php
+// This is a PLUGIN TEMPLATE for Textpattern CMS.
+
+// Copy this file to a new name like abc_myplugin.php.  Edit the code, then
+// run this file at the command line to produce a plugin for distribution:
+// $ php abc_myplugin.php > abc_myplugin-0.1.txt
+
+// Plugin name is optional.  If unset, it will be extracted from the current
+// file name. Plugin names should start with a three letter prefix which is
+// unique and reserved for each plugin author ("abc" is just an example).
+// Uncomment and edit this line to override:
 $plugin['name'] = 'adi_matrix';
-$plugin['version'] = '2.1beta7';
+
+// Allow raw HTML help, as opposed to Textile.
+// 0 = Plugin help is in Textile format, no raw HTML allowed (default).
+// 1 = Plugin help is in raw HTML.  Not recommended.
+# $plugin['allow_html_help'] = 1;
+
+$plugin['version'] = '3.0.0';
 $plugin['author'] = 'Adi Gilbert';
 $plugin['author_uri'] = 'http://www.greatoceanmedia.com.au/';
 $plugin['description'] = 'Multi-article update tabs';
-$plugin['type'] = 1;
-$plugin['flags'] = 0x0001 | 0x0002; // plugin options and lifecycle
+
+// Plugin load order:
+// The default value of 5 would fit most plugins, while for instance comment
+// spam evaluators or URL redirectors would probably want to run earlier
+// (1...4) to prepare the environment for everything else that follows.
+// Values 6...9 should be considered for plugins which would work late.
+// This order is user-overrideable.
+$plugin['order'] = '5';
+
+// Plugin 'type' defines where the plugin is loaded
+// 0 = public              : only on the public side of the website (default)
+// 1 = public+admin        : on both the public and admin side
+// 2 = library             : only when include_plugin() or require_plugin() is called
+// 3 = admin               : only on the admin side (no AJAX)
+// 4 = admin+ajax          : only on the admin side (AJAX supported)
+// 5 = public+admin+ajax   : on both the public and admin side (AJAX supported)
+$plugin['type'] = '1';
+
+// Plugin "flags" signal the presence of optional capabilities to the core plugin loader.
+// Use an appropriately OR-ed combination of these flags.
+// The four high-order bits 0xf000 are available for this plugin's private use
+if (!defined('PLUGIN_HAS_PREFS')) define('PLUGIN_HAS_PREFS', 0x0001); // This plugin wants to receive "plugin_prefs.{$plugin['name']}" events
+if (!defined('PLUGIN_LIFECYCLE_NOTIFY')) define('PLUGIN_LIFECYCLE_NOTIFY', 0x0002); // This plugin wants to receive "plugin_lifecycle.{$plugin['name']}" events
+
+$plugin['flags'] = 0x0001 | 0x0002;
+
+// Plugin 'textpack' is optional. It provides i18n strings to be used in conjunction with gTxt().
+// Syntax:
+// ## arbitrary comment
+// #@event
+// #@language ISO-LANGUAGE-CODE
+// abc_string_name => Localized String
+
+$plugin['textpack'] = <<<EOT
+#@owner adi_matrix
+#@language en, en-gb, en-us
+#@admin-side
+adi_article_matrix => Article Matrix
+#@adi_matrix_admin
+adi_matrix => Matrix
+adi_matrix_alphabetical => Alphabetical
+adi_matrix_any_category => Any category
+adi_matrix_any_child_category => Any child category
+adi_matrix_article_data => Article Data
+adi_matrix_article_highlighting => Article title highlighting
+adi_matrix_article_limit => Maximum number of articles
+adi_matrix_articles_not_modified => No articles modified
+adi_matrix_article_selection => Article Selection
+adi_matrix_article_tooltips => Article title tooltips
+adi_matrix_article_update_fail => Article update failed
+adi_matrix_articles_saved => Articles saved
+adi_matrix_blank_url_title => URL-only title blank
+adi_matrix_cancel => Cancel
+adi_matrix_custom_condition => Custom condition
+adi_matrix_cf_links => Custom field links
+adi_matrix_default_sort => Default sort
+adi_matrix_display_article_id => Display article ID#
+adi_matrix_duplicate_url_title => URL-only title already used
+adi_matrix_edit_preferences => Plugin preferences
+adi_matrix_edit_titles => Edit titles
+adi_matrix_expiry => Expiry
+adi_matrix_footer => Footer
+adi_matrix_has_expiry => Has expiry
+adi_matrix_include_descendent_cats => Include descendent categories
+adi_matrix_install_fail => Unable to install
+adi_matrix_installed => Installed
+adi_matrix_invalid_timestamp => Invalid timestamp
+adi_matrix_jquery_ui => jQuery UI script file
+adi_matrix_jquery_ui_css => jQuery UI CSS file
+adi_matrix_logged_in_user => Logged in user
+adi_matrix_admin => Article Matrix Admin
+adi_matrix_total_articles => Total articles in matrix:
+adi_matrix_cfs_modified => Custom field list modified
+adi_matrix_delete_fail => Matrix delete failed
+adi_matrix_deleted => Matrix deleted
+adi_matrix_input_field_tooltips => Input field tooltips
+adi_matrix_validation_error => Validation errors
+adi_matrix_name => Matrix name
+adi_matrix_order => Matrix order
+adi_matrix_update_fail => Matrix settings update failed
+adi_matrix_updated => Matrix settings updated
+adi_matrix_new_article => New article
+adi_matrix_no_category => No category
+adi_matrix_no_expiry => No expiry
+adi_matrix_not_installed => Not installed
+adi_matrix_numerical => Numerical
+adi_matrix_ok => OK
+adi_matrix_one_category => One category
+adi_matrix_any_parent_category => Any parent category
+adi_matrix_pref_update_fail => Preference update failed
+adi_matrix_reset => Reset
+adi_matrix_scroll => Scroll
+adi_matrix_show_section => Show section
+adi_matrix_sort => Sort by
+adi_matrix_sort_direction => Sort direction
+adi_matrix_sort_type => Sort type
+adi_matrix_tab => Tab
+adi_matrix_tiny_mce => TinyMCE
+adi_matrix_tiny_mce_dir_path => TinyMCE directory path
+adi_matrix_tiny_mce_hak => TinyMCE (hak_tinymce)
+adi_matrix_tiny_mce_javascript' =>'TinyMCE (Javascript)
+adi_matrix_tiny_mce_jquery => TinyMCE (jQuery)
+adi_matrix_tiny_mce_config => TinyMCE configuration
+adi_matrix_two_categories => Two categories
+adi_matrix_uninstall => Uninstall
+adi_matrix_uninstall_fail => Unable to uninstall
+adi_matrix_uninstalled => Uninstalled
+adi_matrix_update_matrix => Update matrix settings
+adi_matrix_update_prefs => Update preferences
+adi_matrix_upgrade_fail => Unable to upgrade
+adi_matrix_upgrade_required => Upgrade required
+adi_matrix_upgraded => Upgraded
+adi_matrix_user => User
+EOT;
 
 if (!defined('txpinterface'))
-    @include_once('zem_tpl.php');
-
-if (0) {
-?>
-# --- BEGIN PLUGIN HELP ---
-
-h1. *adi_matrix* - Multi-article update tabs
-
-This plugin provides a way of viewing and updating multiple articles from a single TXP admin tab.
-
-Matrixes give you a summary view of multiple articles, where you can make changes to selected data & update them all in one go.
-
-Two new tabs do the work:
-
-* adi_matrix admin tab under Extensions
-* article matrix tab(s) under Contents or Home
-
-The admin tab defines the matrixes and the article matrix tabs display the required articles with their data.
-
-h2. *Installation*
-
-Installation of *adi_matrix* adds a new table to your Textpattern database which should not interfere with anything else.
-
-*adi_matrix* is designed to make changes to groups of article.  I suggest that you make backups before installation of this plugin and during initial testing on your site.  I can thoroughly recommend "rss_admin_db_manager":http://forum.textpattern.com/viewtopic.php?id=10395 to do database backups before installation.
-
-h2. *adi_matrix admin tab*
-
-This is where you set up the article matrixes.  There are three aspects to this:
-
-h3. Matrix appearance
-
-Here you can:
-
-* give the matrix a name (which will be used to list it under the Contents tab)
-* specify the order in which articles should be listed
-* specify whether a single user or all users are to get access to the matrix
-* specify whether access to the matrix is based on privileges or not
-* specify which tab to display the matrix under
-* permit users to add/delete articles
-* define how the matrix is laid out
-
-h3. Article selection criteria
-
-By default all articles will be listed in the matrix, but you can narrow it down according to:
-
-* section
-* category
-* article status
-* author
-* keywords
-* posted & expires timestamps
-* custom WHERE clause condition
-
-h3. Article data display
-
-This is where you define what data the user can see and change. Article that can be viewed & updated in matrixes:
-
-* article status
-* custom fields
-* article image
-* keywords
-* categories
-* posted & expires timestamps
-* title
-* section
-
-h3. Preferences
-
-* maximum number of articles to be listed
-* display article ID
-* article title highlighting (indicate future or expired articles)
-* article title tooltips (show ID, posted & expires timestamps in tooltip)
-* input field tooltips (show contents of input field in a tooltip)
-
-h2. *Getting started*
-
-A new matrix can be added in *adi_matrix* admin tab simply by entering its details into the blank spaces.  As a minimum, a matrix name needs to be provided.
-
-Once a matrix has been defined, it's settings can be changed at any time.  The new matrix will seen under the Contents or Home tabs after you have visited at least one other TXP tab (a hop is required so that the the tab contents are refreshed).
-
-h2. *Article matrixes*
-
-The matrix tabs show a number of articles, with their associated "data". If you are the article author or have sufficient overriding privileges then you can make changes to the data & update all articles with a single click.
-
-Note that only articles where you have actually changed anything will be updated - together with their __Last Modified Date__ and __Author__.
-
-*adi_matrix* respects all the standard restrictions on who can make changes to articles - based on authorship & privilege level.
-
-h2. *Textpack*
-
-To install the Textpack, go to the plugin's options page and click on "Install textpack".  This will copy & install it from a remote server. The number of language strings installed for your language will be displayed.
-
-If the Textpack installation fails (possibly due to an error accessing the remote site), the alternative is to click the "Textpack also available online":http://www.greatoceanmedia.com.au/textpack link.  This will take you to a website where the Textpack can be manually copied & pasted into the TXP Admin - Language tab.
-
-Updates and corrections to the Textpack are welcome - please use the "Textpack feedback":http://www.greatoceanmedia.com.au/textpack/?plugin=adi_matrix form.
-
-h2. *glz_custom_fields*
-
-*adi_matrix* will automatically detect if *glz_custom_fields* is installed and should play nicely.
-
-h2. *TinyMCE*
-
-If *glz_custom_fields* is installed you have the opportunity to use "TinyMCE":http://www.tinymce.com/ to edit textarea custom fields.  Note that TinyMCE must be installed separately.  To use it with *adi_matrix*, switch it on in the admin tab and fill in the configuration details.
-
-h2. *Uninstalling adi_matrix*
-
-To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No articles will be harmed in the process.
-
-h2(adi_extras). *Additional information*
-
-p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_matrix.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.
-
-# --- END PLUGIN HELP ---
-<?php
-}
+        @include_once('zem_tpl.php');
 
 # --- BEGIN PLUGIN CODE ---
-
 /*
     adi_matrix - Multi-article update tabs
 
@@ -170,103 +183,11 @@ if (txpinterface === 'admin') {
 
 function adi_matrix_init() {
 // general setup
-    global $event, $step, $prefs, $txp_groups, $txp_user, $txp_permissions, $theme, $textarray, $adi_matrix_url, $adi_matrix_glz_cfs, $adi_matrix_privs, $adi_matrix_groups, $adi_matrix_cfs, $adi_matrix_expiry_options, $adi_matrix_statuses, $adi_matrix_sort_options, $adi_matrix_sort_dir, $adi_matrix_timestamp_options, $adi_matrix_prefs, $adi_matrix_plugin_status, $adi_matrix_debug, $adi_matrix_glz_cfs, $adi_matrix_list, $adi_matrix_validation_errors, $adi_matrix_sort_type, $adi_matrix_categories, $adi_matrix_tabs, $adi_matrix_txp460, $adi_matrix_nulldatetime, $adi_matrix_glz_cfs_v20;
+    global $event, $step, $prefs, $txp_groups, $txp_user, $txp_permissions, $theme, $adi_matrix_glz_cfs, $adi_matrix_privs, $adi_matrix_groups, $adi_matrix_cfs, $adi_matrix_expiry_options, $adi_matrix_statuses, $adi_matrix_sort_options, $adi_matrix_sort_dir, $adi_matrix_timestamp_options, $adi_matrix_prefs, $adi_matrix_plugin_status, $adi_matrix_debug, $adi_matrix_glz_cfs, $adi_matrix_list, $adi_matrix_validation_errors, $adi_matrix_sort_type, $adi_matrix_categories, $adi_matrix_tabs, $adi_matrix_txp460, $adi_matrix_nulldatetime, $adi_matrix_glz_cfs_v20;
 
     $adi_matrix_txp460 = (version_compare(txp_version,'4.6-dev','>='));
 
     $adi_matrix_nulldatetime = ($adi_matrix_txp460 ? 'NULL' : NULLDATETIME);
-
-# --- BEGIN PLUGIN TEXTPACK ---
-    $adi_matrix_gtxt = array(
-        'adi_alphabetical' => 'Alphabetical',
-        'adi_any_category' => 'Any category',
-        'adi_any_child_category' => 'Any child category',
-        'adi_article_data' => 'Article Data',
-        'adi_article_matrix' => 'Article Matrix',
-        'adi_article_highlighting' => 'Article title highlighting',
-        'adi_article_limit' => 'Maximum number of articles',
-        'adi_articles_not_modified' => 'No articles modified',
-        'adi_article_selection' => 'Article Selection',
-        'adi_article_tooltips' => 'Article title tooltips',
-        'adi_article_update_fail' => 'Article update failed',
-        'adi_articles_saved' => 'Articles saved',
-        'adi_blank_url_title' => 'URL-only title blank',
-        'adi_cancel' => 'Cancel',
-        'adi_custom_condition' => 'Custom condition',
-        'adi_cf_links' => 'Custom field links',
-        'adi_default_sort' => 'Default sort',
-        'adi_display_article_id' => 'Display article ID#',
-        'adi_duplicate_url_title' => 'URL-only title already used',
-        'adi_edit_titles' => 'Edit titles',
-        'adi_expiry' => 'Expiry',
-        'adi_footer' => 'Footer',
-        'adi_has_expiry' => 'Has expiry',
-        'adi_include_descendent_cats' => 'Include descendent categories',
-        'adi_install_fail' => 'Unable to install',
-        'adi_installed' => 'Installed',
-        'adi_invalid_timestamp' => 'Invalid timestamp',
-        'adi_jquery_ui' => 'jQuery UI script file',
-        'adi_jquery_ui_css' => 'jQuery UI CSS file',
-        'adi_logged_in_user' => 'Logged in user',
-        'adi_matrix' => 'Matrix',
-        'adi_matrix_admin' => 'Article Matrix Admin',
-        'adi_matrix_total_articles' => 'Total articles in matrix:',
-        'adi_matrix_cfs_modified' => 'Custom field list modified',
-        'adi_matrix_delete_fail' => 'Matrix delete failed',
-        'adi_matrix_deleted' => 'Matrix deleted',
-        'adi_matrix_input_field_tooltips' => 'Input field tooltips',
-        'adi_matrix_validation_error' => 'Validation errors',
-        'adi_matrix_name' => 'Matrix name',
-        'adi_matrix_order' => 'Matrix order',
-        'adi_matrix_update_fail' => 'Matrix settings update failed',
-        'adi_matrix_updated' => 'Matrix settings updated',
-        'adi_new_article' => 'New article',
-        'adi_no_category' => 'No category',
-        'adi_no_expiry' => 'No expiry',
-        'adi_not_installed' => 'Not installed',
-        'adi_numerical' => 'Numerical',
-        'adi_ok' => 'OK',
-        'adi_one_category' => 'One category',
-        'adi_any_parent_category' => 'Any parent category',
-        'adi_pref_update_fail' => 'Preference update failed',
-        'adi_reset' => 'Reset',
-        'adi_scroll' => 'Scroll',
-        'adi_show_section' => 'Show section',
-        'adi_sort_type' => 'Sort type',
-        'adi_tab' => 'Tab',
-        'adi_textpack_fail' => 'Textpack installation failed',
-        'adi_textpack_feedback' => 'Textpack feedback',
-        'adi_textpack_online' => 'Textpack also available online',
-        'adi_tiny_mce' => 'TinyMCE',
-        'adi_tiny_mce_dir_path' => 'TinyMCE directory path',
-        'adi_tiny_mce_hak' => 'TinyMCE (hak_tinymce)',
-        'adi_tiny_mce_javascript' =>'TinyMCE (Javascript)',
-        'adi_tiny_mce_jquery' => 'TinyMCE (jQuery)',
-        'adi_tiny_mce_config' => 'TinyMCE configuration',
-        'adi_two_categories' => 'Two categories',
-        'adi_uninstall' => 'Uninstall',
-        'adi_uninstall_fail' => 'Unable to uninstall',
-        'adi_uninstalled' => 'Uninstalled',
-        'adi_update_matrix' => 'Update matrix settings',
-        'adi_update_prefs' => 'Update preferences',
-        'adi_upgrade_fail' => 'Unable to upgrade',
-        'adi_upgrade_required' => 'Upgrade required',
-        'adi_upgraded' => 'Upgraded',
-        'adi_user' => 'User',
-    );
-# --- END PLUGIN TEXTPACK ---
-
-    // update $textarray
-    $textarray += $adi_matrix_gtxt;
-
-    // Textpack
-    $adi_matrix_url = array(
-        'textpack' => 'http://www.greatoceanmedia.com.au/files/adi_textpack.txt',
-        'textpack_download' => 'http://www.greatoceanmedia.com.au/textpack/download',
-        'textpack_feedback' => 'http://www.greatoceanmedia.com.au/textpack/?plugin=adi_matrix',
-    );
-    if (strpos($prefs['plugin_cache_dir'],'adi') !== FALSE) // use Adi's local version
-        $adi_matrix_url['textpack'] = $prefs['plugin_cache_dir'].'/adi_textpack.txt';
 
     // plugin lifecycle
     register_callback('adi_matrix_lifecycle','plugin_lifecycle.adi_matrix');
@@ -336,8 +257,8 @@ function adi_matrix_init() {
     // article expiry options
     $adi_matrix_expiry_options = array(
         0 => '',
-        1 => gTxt('adi_no_expiry'),
-        2 => gTxt('adi_has_expiry'),
+        1 => gTxt('adi_matrix_no_expiry'),
+        2 => gTxt('adi_matrix_has_expiry'),
         3 => gTxt('expired'),
     );
 
@@ -375,8 +296,8 @@ function adi_matrix_init() {
 
     // article sort type
     $adi_matrix_sort_type = array(
-        'alphabetical' => gTxt('adi_alphabetical'),
-        'numerical' => gTxt('adi_numerical'),
+        'alphabetical' => gTxt('adi_matrix_alphabetical'),
+        'numerical' => gTxt('adi_matrix_numerical'),
     );
 
     // article timestamp options
@@ -388,10 +309,10 @@ function adi_matrix_init() {
 
     // validation errors
     $adi_matrix_validation_errors = array(
-        0 => gTxt('adi_invalid_timestamp'),
+        0 => gTxt('adi_matrix_invalid_timestamp'),
         1 => gTxt('article_expires_before_postdate'),
-        2 => gTxt('adi_duplicate_url_title'),
-        3 => gTxt('adi_blank_url_title'),
+        2 => gTxt('adi_matrix_duplicate_url_title'),
+        3 => gTxt('adi_matrix_blank_url_title'),
     );
 
     // default preferences
@@ -744,13 +665,13 @@ function adi_matrix_where($criteria=array()) {
     $cats = array();
     if ($category == '!no_category!')
         $category = " AND (Category1 = '' AND Category2 = '')";
-    else if ($category == '!any_category!')
+    elseif ($category == '!any_category!')
         $category = " AND (Category1 != '' OR Category2 != '')";
-    else if ($category == '!one_category!')
+    elseif ($category == '!one_category!')
         $category = " AND (Category1 != '' AND Category2 = '') OR  (Category1 = '' AND Category2 != '')";
-    else if ($category == '!two_categories!')
+    elseif ($category == '!two_categories!')
         $category = " AND (Category1 != '' AND Category2 != '')";
-    else if ($category == '!any_parent_category!') {
+    elseif ($category == '!any_parent_category!') {
         foreach ($adi_matrix_categories as $name => $this_cat)
             if ($this_cat['children'])
                 $cats[] = $name;
@@ -758,7 +679,7 @@ function adi_matrix_where($criteria=array()) {
         $category = implode("','", doSlash(do_list($category)));
         $category = (!$category) ? '' : " AND (Category1 IN ('".$category."') OR Category2 IN ('".$category."'))";
     }
-    else if ($category == '!any_child_category!') {
+    elseif ($category == '!any_child_category!') {
         foreach ($adi_matrix_categories as $name => $this_cat)
             if ($this_cat['parent'] != 'root')
                 $cats[] = $name;
@@ -775,6 +696,7 @@ function adi_matrix_where($criteria=array()) {
 
     $section   = (!$section) ? '' : " AND Section IN ('".implode("','", doSlash(do_list($section)))."')";
     $excerpted = ($excerpted=='y') ? " AND Excerpt !=''" : '';
+
     if ($author == '!logged_in_user!')
         $author = $txp_user;
     $author    = (!$author) ? '' : " AND AuthorID IN ('".implode("','", doSlash(do_list($author)))."')";
@@ -1500,7 +1422,7 @@ function adi_matrix_glz_cfs_input($custom_x,$var,$val,$id) {
         $glz_id_prefix = str_replace('[','_',$var);
         $glz_id_prefix = str_replace(']','_',$glz_id_prefix);
     }
-//  else if ($html == 'checkbox') {
+//  elseif ($html == 'checkbox') {
 //      NO GOOD SETTING $glz_id_prefix COZ glz_checkbox(), called by glz_format_custom_set_by_type(), don't use it!
 //      HAVE HAD TO USE jQUERY TO ENFORCE UNIQUE IDs
 //  }
@@ -1711,7 +1633,7 @@ function adi_matrix_validate_post_data($adi_matrix_articles,$post_data) {
             // get ids of all other articles with matching URL-only titles (they may not be in this matrix, or in this page of this matrix)
             $duplicates = safe_rows('id','textpattern',"url_title = '$url_title'"); // returns array of arrays containing 'id' => id#
             if ($id == 'new')
-                $duplicates[]['id'] = gTxt('adi_new_article'); // using "new article" in duplicates list coz don't have new article list
+                $duplicates[]['id'] = gTxt('adi_matrix_new_article'); // using "new article" in duplicates list coz don't have new article list
         }
         if ($msg) {
             foreach ($duplicates as $duplicate) {
@@ -2111,7 +2033,7 @@ function adi_matrix_new_article($matrix_index) {
     // section
     if ($adi_matrix_list[$matrix_index]['show_section'])
         $out .= tda($defaults['section'],' class="adi_matrix_field_section"');
-    else if ($adi_matrix_list[$matrix_index]['section'])
+    elseif ($adi_matrix_list[$matrix_index]['section'])
         $out .= tda(adi_matrix_section_popup($prefix."[section]",$defaults['section'],$adi_matrix_list[$matrix_index]['criteria_section']),' class="adi_matrix_field_section"');
     // status
     if ($adi_matrix_list[$matrix_index]['status'])
@@ -2169,7 +2091,7 @@ function adi_matrix_matrix($event,$step) {
     // bomb out if upgrade needed
     $upgrade_required = adi_matrix_upgrade();
     if ($upgrade_required) {
-        pagetop($adi_matrix_list[$matrix_index]['name'],array(gTxt('adi_upgrade_required'),E_WARNING));
+        pagetop($adi_matrix_list[$matrix_index]['name'],array(gTxt('adi_matrix_upgrade_required'),E_WARNING));
         return;
     }
 
@@ -2185,9 +2107,9 @@ function adi_matrix_matrix($event,$step) {
     if ($new_sort || $new_dir || $new_sort_type || $reset_sort) {
         if ($new_sort && $new_dir) // column heading clicked
             adi_matrix_pref($event.'_sort',$new_sort.','.$new_dir.','.$sort_type,TRUE); // update user pref with sort & dir
-        else if ($new_sort_type) // sort_type change
+        elseif ($new_sort_type) // sort_type change
             adi_matrix_pref($event.'_sort',$sort.','.$dir.','.$new_sort_type,TRUE); // update user pref with sort_type
-        else if ($reset_sort) { // reset sort to default
+        elseif ($reset_sort) { // reset sort to default
             safe_delete('txp_prefs',"name = '".$event."_sort'",$adi_matrix_debug); // delete user pref
             unset($prefs[$event.'_sort']);
         }
@@ -2242,10 +2164,10 @@ function adi_matrix_matrix($event,$step) {
         $updates = adi_matrix_get_updates(adi_matrix_remove_errors($post_data,$errors),$adi_matrix_articles);
         if ($updates) {
             $ok = adi_matrix_update_articles($updates,$matrix_index);
-            $ok ? $message = gTxt('adi_articles_saved') : $message = array(gTxt('adi_article_update_fail'),E_WARNING);
+            $ok ? $message = gTxt('adi_matrix_articles_saved') : $message = array(gTxt('adi_matrix_article_update_fail'),E_WARNING);
         }
         else
-            $message = gTxt('adi_articles_not_modified');
+            $message = gTxt('adi_matrix_articles_not_modified');
         if ($errors) {
             $message .= '. '.gTxt('adi_matrix_validation_error');
             foreach ($errors as $i => $v)
@@ -2253,14 +2175,14 @@ function adi_matrix_matrix($event,$step) {
             $message = array($message,E_WARNING);
         }
     }
-    else if ($step == 'delete') {
+    elseif ($step == 'delete') {
         $id = gps('id');
         if (isset($adi_matrix_articles[$id])) {
             $ok = adi_matrix_delete_article($id);
             $message = gTxt('article_deleted').' ('.$id.')';
         }
         else {
-            $message = array(gTxt('adi_article_delete_fail'),E_ERROR);
+            $message = array(gTxt('adi_matrix_article_delete_fail'),E_ERROR);
         }
     }
 
@@ -2326,7 +2248,7 @@ function adi_matrix_matrix($event,$step) {
         )
         .tag(
             graf(
-                gTxt('adi_default_sort')
+                gTxt('adi_matrix_default_sort')
                 .sp.sp
                 .elink(
                     $event
@@ -2341,9 +2263,9 @@ function adi_matrix_matrix($event,$step) {
                     ,'','','' // to override TXP 4.5 default title "Edit"
                 )
                 .br
-                .gTxt('adi_sort_type')
+                .gTxt('adi_matrix_sort_type')
                 .sp.sp
-                .strong(gTxt('adi_'.$sort_type))
+                .strong(gTxt('adi_matrix_'.$sort_type))
                 .' / '
                 .elink(
                     $event
@@ -2483,7 +2405,7 @@ function adi_matrix_lifecycle($event,$step) {
     if ($step == 'enabled') {
         $result = $upgrade = adi_matrix_install();
     }
-    else if ($step == 'deleted')
+    elseif ($step == 'deleted')
         $result = adi_matrix_uninstall();
     if ($upgrade)
         $result = $result && adi_matrix_upgrade(TRUE);
@@ -2708,7 +2630,7 @@ function adi_matrix_category_popup($select_name,$value,$admin=TRUE) {
             $wildcard_list = array('no_category','any_category','one_category','two_categories','any_parent_category','any_child_category');
             foreach (array_reverse($wildcard_list) as $wildcard)
                 /* add to front of array & renumber */
-                array_unshift($rs,array('id' => '0', 'name' => '!'.$wildcard.'!', 'title' => gTxt('adi_'.$wildcard), 'level' => '0', 'children' => '0', 'parent' => 'root'));
+                array_unshift($rs,array('id' => '0', 'name' => '!'.$wildcard.'!', 'title' => gTxt('adi_matrix_'.$wildcard), 'level' => '0', 'children' => '0', 'parent' => 'root'));
         }
         return treeSelectInput($select_name,$rs,$value,'',35);
     }
@@ -2743,7 +2665,7 @@ function adi_matrix_user_popup($select_name,$value,$wildcard=FALSE) {
     $rs = safe_column('name', 'txp_users', '1=1');
     if ($rs) {
         if ($wildcard) { /* create wildcard */
-            $logged_in_user = array('!logged_in_user!' => gTxt('adi_logged_in_user'));
+            $logged_in_user = array('!logged_in_user!' => gTxt('adi_matrix_logged_in_user'));
             $rs = $logged_in_user + $rs; /* add to front of array */
         }
         return selectInput($select_name, $rs, $value, TRUE);
@@ -2791,7 +2713,7 @@ function adi_matrix_timestamp_input($name,$datetime,$ts,$type='posted') {
             .adi_matrix_tsi($name.'[minute]','%M',$ts,'',$type)
             .' :'
             .adi_matrix_tsi($name.'[second]','%S',$ts,'',$type)
-            .($type == 'posted' ? br.tag(gTxt('adi_reset'),'label',' class="reset_time-now"').sp.checkbox($name.'[reset_time]','1','0') : '')
+            .($type == 'posted' ? br.tag(gTxt('adi_matrix_reset'),'label',' class="reset_time-now"').sp.checkbox($name.'[reset_time]','1','0') : '')
             ,'div'
             ,' class="time'.$class.'"'
         );
@@ -3040,8 +2962,8 @@ function adi_matrix_admin_table_head($adi_matrix_cfs) {
             tr(
                 hcell(gTxt('adi_matrix'))
                 .hcell() // spacer for view link
-                .hcell(gTxt('adi_article_selection'))
-                .hcell(gTxt('adi_article_data'),'',' colspan="'.$data_span.'"')
+                .hcell(gTxt('adi_matrix_article_selection'))
+                .hcell(gTxt('adi_matrix_article_data'),'',' colspan="'.$data_span.'"')
                 .hcell('','',' class="adi_matrix_noborder"') // spacer for delete link
             )
             ,'thead'
@@ -3111,13 +3033,13 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                 tda(
                     graf(tag(gTxt('name'),'label').finput("text","matrix_".$matrix_index."[name]",$matrix['name']))
                     .graf(tag(gTxt('adi_matrix_order'),'label').finput("text","matrix_".$matrix_index."[ordinal]",$matrix['ordinal']))
-                    .graf(tag(gTxt('sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$adi_matrix_sort_options,$matrix['sort'],FALSE))
-                    .graf(tag(gTxt('sort_direction'),'label').selectInput("matrix_".$matrix_index."[dir]",$adi_matrix_sort_dir,$matrix['dir'],FALSE))
-                    .graf(tag(gTxt('adi_sort_type'),'label').selectInput("matrix_".$matrix_index."[sort_type]",$adi_matrix_sort_type,$matrix['sort_type'],FALSE))
-                    .graf(tag(gTxt('adi_user'),'label').adi_matrix_user_popup("matrix_".$matrix_index."[user]",$matrix['user']))
+                    .graf(tag(gTxt('adi_matrix_sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$adi_matrix_sort_options,$matrix['sort'],FALSE))
+                    .graf(tag(gTxt('adi_matrix_sort_direction'),'label').selectInput("matrix_".$matrix_index."[dir]",$adi_matrix_sort_dir,$matrix['dir'],FALSE))
+                    .graf(tag(gTxt('adi_matrix_sort_type'),'label').selectInput("matrix_".$matrix_index."[sort_type]",$adi_matrix_sort_type,$matrix['sort_type'],FALSE))
+                    .graf(tag(gTxt('adi_matrix_user'),'label').adi_matrix_user_popup("matrix_".$matrix_index."[user]",$matrix['user']))
                     .graf(tag(gTxt('privileges'),'label').adi_matrix_privs_popup("matrix_".$matrix_index."[privs]",$matrix['privs']))
                     .graf(
-                        span(gTxt('adi_scroll'))
+                        span(gTxt('adi_matrix_scroll'))
                         .tag(
                             radio("matrix_".$matrix_index."[scroll]",'0',($matrix['scroll'] == '0'))
                             .sp
@@ -3132,7 +3054,7 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                         )
                     )
                     .graf(
-                        span(gTxt('adi_footer'))
+                        span(gTxt('adi_matrix_footer'))
                         .tag(
                             radio("matrix_".$matrix_index."[footer]",'0',($matrix['footer'] == '0'))
                             .sp
@@ -3148,7 +3070,7 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                         )
                     )
                     .graf(
-                        span(gTxt('adi_show_section'))
+                        span(gTxt('adi_matrix_show_section'))
                         .tag(
                             radio("matrix_".$matrix_index."[show_section]",'0',($matrix['show_section'] == '0'))
                             .sp
@@ -3164,7 +3086,7 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                         )
                     )
                     .graf(
-                        span(gTxt('adi_cf_links'))
+                        span(gTxt('adi_matrix_cf_links'))
                             .tag(
                             radio("matrix_".$matrix_index."[cf_links]",'',(empty($matrix['cf_links']))) // will be comma list one day
                             .sp
@@ -3196,7 +3118,7 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                             ,'label'
                         )
                     )
-                    .graf(tag(gTxt('adi_tab'),'label').adi_matrix_tab_popup("matrix_".$matrix_index."[tab]",$matrix['tab']))
+                    .graf(tag(gTxt('adi_matrix_tab'),'label').adi_matrix_tab_popup("matrix_".$matrix_index."[tab]",$matrix['tab']))
                     ,' class="adi_matrix_field"'
                 )
                 .tda($view_link)
@@ -3205,13 +3127,13 @@ function adi_matrix_admin_table($matrix_list,$matrix_cfs) {
                     gTxt('section').br
                     .tag(adi_matrix_section_checkboxes("matrix_".$matrix_index."[criteria_section]",$matrix['criteria_section']),'div',' class="adi_matrix_multi_checkboxes"')
                     .graf(tag(gTxt('category'),'label').adi_matrix_category_popup("matrix_".$matrix_index."[criteria_category]",$matrix['criteria_category']))
-                    .graf(tag(checkbox("matrix_".$matrix_index."[criteria_descendent_cats]",1,$matrix['criteria_descendent_cats']).sp.gTxt('adi_include_descendent_cats'),'label',' class="adi_matrix_label2"'))
+                    .graf(tag(checkbox("matrix_".$matrix_index."[criteria_descendent_cats]",1,$matrix['criteria_descendent_cats']).sp.gTxt('adi_matrix_include_descendent_cats'),'label',' class="adi_matrix_label2"'))
                     .graf(tag(gTxt('status'),'label').adi_matrix_status_popup("matrix_".$matrix_index."[criteria_status]",$matrix['criteria_status']))
                     .graf(tag(gTxt('author'),'label').adi_matrix_user_popup("matrix_".$matrix_index."[criteria_author]",$matrix['criteria_author'],TRUE))
                     .graf(tag(gTxt('keywords'),'label').finput("text","matrix_".$matrix_index."[criteria_keywords]",$matrix['criteria_keywords']))
                     .graf(tag(gTxt('timestamp'),'label').adi_matrix_timestamp_popup("matrix_".$matrix_index."[criteria_timestamp]",$matrix['criteria_timestamp']))
-                    .graf(tag(gTxt('adi_expiry'),'label').adi_matrix_expiry_popup("matrix_".$matrix_index."[criteria_expiry]",$matrix['criteria_expiry']))
-                    .graf(tag(gTxt('adi_custom_condition'),'label').finput("text","matrix_".$matrix_index."[criteria_condition]",$matrix['criteria_condition']))
+                    .graf(tag(gTxt('adi_matrix_expiry'),'label').adi_matrix_expiry_popup("matrix_".$matrix_index."[criteria_expiry]",$matrix['criteria_expiry']))
+                    .graf(tag(gTxt('adi_matrix_custom_condition'),'label').finput("text","matrix_".$matrix_index."[criteria_condition]",$matrix['criteria_condition']))
                     ,' class="adi_matrix_field"'
                 )
                 // article data
@@ -3267,8 +3189,8 @@ function adi_matrix_tiny_mce_custom() {
     $adi_matrix_tiny_mce_config = adi_matrix_pref('adi_matrix_tiny_mce_config');
 
     $title = gTxt('edit');
-    $ok = gTxt('adi_ok');
-    $cancel = gTxt('adi_cancel');
+    $ok = gTxt('adi_matrix_ok');
+    $cancel = gTxt('adi_matrix_cancel');
 
     $script = <<<END_SCRIPT
 <script src="$jquery_ui" type="text/javascript"></script>
@@ -3372,7 +3294,7 @@ function adi_matrix_tiny_mce_style() {
 
 function adi_matrix_admin($event, $step) {
 // adi_matrix admin tab
-    global $adi_matrix_debug,$adi_matrix_cfs,$adi_matrix_prefs,$adi_matrix_url,$prefs,$textarray,$adi_matrix_privs,$adi_matrix_groups,$txp_permissions,$adi_matrix_glz_cfs,$adi_matrix_sort_options;
+    global $adi_matrix_debug,$adi_matrix_cfs,$adi_matrix_prefs,$prefs,$adi_matrix_privs,$adi_matrix_groups,$txp_permissions,$adi_matrix_glz_cfs,$adi_matrix_sort_options;
 
     $message = '';
     $installed = adi_matrix_installed();
@@ -3380,7 +3302,7 @@ function adi_matrix_admin($event, $step) {
     if ($installed) {
         $upgrade_required = adi_matrix_upgrade();
         if ($upgrade_required)
-            $message = array(gTxt('adi_upgrade_required'),E_WARNING);
+            $message = array(gTxt('adi_matrix_upgrade_required'),E_WARNING);
         else { // custom field musical chairs
             $cfs_fiddled = FALSE;
             // add additional custom fields that may have suddenly appeared (glz_cfs: custom_11+)
@@ -3409,24 +3331,24 @@ function adi_matrix_admin($event, $step) {
         }
     }
     else
-        $message = array(gTxt('adi_not_installed'),E_ERROR);
+        $message = array(gTxt('adi_matrix_not_installed'),E_ERROR);
 
     // admin $step aerobics
     if ($step == 'update') {
         $result = adi_matrix_update_settings();
         $result ? $message = gTxt('adi_matrix_updated') : $message = array(gTxt('adi_matrix_update_fail'),E_ERROR);
     }
-    else if ($step == 'delete') {
+    elseif ($step == 'delete') {
         $matrix_index = gps('matrix');
         $result = adi_matrix_delete($matrix_index);
         $result ? $message = gTxt('adi_matrix_deleted') : $message = array(gTxt('adi_matrix_delete_fail'),E_ERROR);
     }
-    else if ($step == 'update_prefs') {
+    elseif ($step == 'update_prefs') {
         $result = TRUE;
         foreach ($adi_matrix_prefs as $name => $data) {
             if (array_key_exists($name,$_POST))
                 $value = $_POST[$name];
-            else if ($data['input'] == 'yesnoradio')
+            elseif ($data['input'] == 'yesnoradio')
                 $value = '0';
             else
                 $value = $data['value'];
@@ -3437,7 +3359,7 @@ function adi_matrix_admin($event, $step) {
                     $value = $adi_matrix_prefs[$non_blank]['value'];
             $result = $result && adi_matrix_pref($name,$value);
         }
-        $result ? $message = gTxt('preferences_saved') : $message = array(gTxt('adi_pref_update_fail'),E_ERROR);
+        $result ? $message = gTxt('preferences_saved') : $message = array(gTxt('adi_matrix_pref_update_fail'),E_ERROR);
     }
 
     // generate page
@@ -3466,19 +3388,19 @@ function adi_matrix_admin($event, $step) {
         // preferences
         echo form(
             tag(
-                tag(gTxt('edit_preferences'),'h2')
+                tag(gTxt('adi_matrix_edit_preferences'),'h2')
                 // display article id
                 .graf(
                     tag(
                         checkbox2("adi_matrix_display_id",adi_matrix_pref('adi_matrix_display_id'))
                         .sp
-                        .gTxt('adi_display_article_id')
+                        .gTxt('adi_matrix_display_article_id')
                     ,'label')
                     .sp.sp
                     .tag(
                         checkbox2("adi_matrix_article_highlighting",adi_matrix_pref('adi_matrix_article_highlighting'))
                         .sp
-                        .gTxt('adi_article_highlighting')
+                        .gTxt('adi_matrix_article_highlighting')
                     ,'label')
                 )
                 // article tooltips
@@ -3486,7 +3408,7 @@ function adi_matrix_admin($event, $step) {
                     tag(
                         checkbox2("adi_matrix_article_tooltips",adi_matrix_pref('adi_matrix_article_tooltips'))
                         .sp
-                        .gTxt('adi_article_tooltips')
+                        .gTxt('adi_matrix_article_tooltips')
                     ,'label')
                     .sp.sp
                     .tag(
@@ -3498,7 +3420,7 @@ function adi_matrix_admin($event, $step) {
                 .( $adi_matrix_glz_cfs ?
                     // tinymce
                     graf(
-                        gTxt('adi_tiny_mce')
+                        gTxt('adi_matrix_tiny_mce')
                         .sp
                         .tag(
                             radio("adi_matrix_tiny_mce",'0',(adi_matrix_pref('adi_matrix_tiny_mce') == '0'))
@@ -3517,29 +3439,29 @@ function adi_matrix_admin($event, $step) {
                     .'<div id="peekaboo">'
                     // tinymce dir
                     .graf(
-                        tag(gTxt('adi_tiny_mce_dir_path'),'label')
+                        tag(gTxt('adi_matrix_tiny_mce_dir_path'),'label')
                         .finput("text",'adi_matrix_tiny_mce_dir',adi_matrix_pref('adi_matrix_tiny_mce_dir'),'','','',40)
                     )
                     // jquery ui
                     .graf(
-                        tag(gTxt('adi_jquery_ui').':','label')
+                        tag(gTxt('adi_matrix_jquery_ui').':','label')
                         .finput("text",'adi_matrix_jquery_ui',adi_matrix_pref('adi_matrix_jquery_ui'),'','','',40)
                     )
                     // jquery ui css
                     .graf(
-                        tag(gTxt('adi_jquery_ui_css').':','label')
+                        tag(gTxt('adi_matrix_jquery_ui_css').':','label')
                         .finput("text",'adi_matrix_jquery_ui_css',adi_matrix_pref('adi_matrix_jquery_ui_css'),'','','',40)
                     )
                     // tinymce config
                     .graf(
-                        tag(gTxt('adi_tiny_mce_config').':','label')
+                        tag(gTxt('adi_matrix_tiny_mce_config').':','label')
                     )
                     .graf(
                         text_area('adi_matrix_tiny_mce_config',300,600,adi_matrix_pref('adi_matrix_tiny_mce_config'))
                     )
                     .'</div>'
                 : '')
-                .fInput("submit", "do_something", gTxt('adi_update_prefs'), "smallerbox")
+                .fInput("submit", "do_something", gTxt('adi_matrix_update_prefs'), "smallerbox")
                 .eInput("adi_matrix_admin").sInput("update_prefs")
                 ,'div'
                 ,' class="adi_matrix_prefs"'
@@ -3573,55 +3495,44 @@ function adi_matrix_admin($event, $step) {
 
 }
 
-function adi_matrix_options($event,$step) {
 // plugin options page
-    global $adi_matrix_debug,$adi_matrix_url,$adi_matrix_plugin_status,$textarray;
+function adi_matrix_options($event,$step) {
+    global $adi_matrix_debug,$adi_matrix_plugin_status;
 
     $message = '';
 
     $installed = adi_matrix_installed();
+
     if ($installed) {
         $upgrade_required = adi_matrix_upgrade();
+
         if ($upgrade_required)
             $step = 'upgrade';
     }
 
-    // dance steps
-    if ($step == 'textpack') {
-        if (function_exists('install_textpack')) {
-            $adi_textpack = file_get_contents($adi_matrix_url['textpack']);
-            if ($adi_textpack) {
-                $result = install_textpack($adi_textpack);
-                $message = gTxt('textpack_strings_installed', array('{count}' => $result));
-                $textarray = load_lang(LANG); // load in new strings
-            }
-            else
-                $message = array(gTxt('adi_textpack_fail'),E_ERROR);
-        }
-    }
-    else if ($step == 'upgrade') {
+    if ($step == 'upgrade') {
         $result = adi_matrix_upgrade(TRUE);
-        $result ? $message = gTxt('adi_upgraded') : $message = array(gTxt('adi_upgrade_fail'),E_ERROR);
+        $result ? $message = gTxt('adi_matrix_upgraded') : $message = array(gTxt('adi_matrix_upgrade_fail'),E_ERROR);
     }
-    else if ($step == 'downgrade') {
+    elseif ($step == 'downgrade') {
         $result = adi_matrix_downgrade();
-        $result ? $message = gTxt('adi_downgraded') : $message = array(gTxt('adi_downgrade_fail'),E_ERROR);
+        $result ? $message = gTxt('adi_matrix_downgraded') : $message = array(gTxt('adi_matrix_downgrade_fail'),E_ERROR);
     }
-    else if ($step == 'tweak') { // for development updates
+    elseif ($step == 'tweak') { // for development updates
         $result = safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `cf_links` VARCHAR(255) NOT NULL DEFAULT ''",$adi_matrix_debug);
         $result ? $message = 'Tweaked' : $message = array('Tweak failed',E_ERROR);
     }
-    else if ($step == 'install') {
+    elseif ($step == 'install') {
         $result = adi_matrix_install();
-        $result ? $message = gTxt('adi_installed') : $message = array(gTxt('adi_install_fail'),E_ERROR);
+        $result ? $message = gTxt('adi_matrix_installed') : $message = array(gTxt('adi_matrix_install_fail'),E_ERROR);
     }
-    else if ($step == 'uninstall') {
+    elseif ($step == 'uninstall') {
         $result = adi_matrix_uninstall();
-        $result ? $message = gTxt('adi_uninstalled') : $message = array(gTxt('adi_uninstall_fail'),E_ERROR);
+        $result ? $message = gTxt('adi_matrix_uninstalled') : $message = array(gTxt('adi_matrix_uninstall_fail'),E_ERROR);
     }
 
     // generate page
-    pagetop('adi_matrix - '.gTxt('plugin_prefs'),$message);
+    pagetop('adi_matrix - '.gTxt('adi_matrix_edit_preferences'),$message);
 
     $install_button =
         tag(
@@ -3636,7 +3547,7 @@ function adi_matrix_options($event,$step) {
     $uninstall_button =
         tag(
             form(
-                fInput("submit", "do_something", gTxt('adi_uninstall'), "publish","",'return verify(\''.gTxt('are_you_sure').'\')')
+                fInput("submit", "do_something", gTxt('adi_matrix_uninstall'), "publish","",'return verify(\''.gTxt('are_you_sure').'\')')
                 .eInput($event).sInput("uninstall")
                 ,'','','post','adi_matrix_nstall_button adi_matrix_uninstall_button'
             )
@@ -3650,11 +3561,7 @@ function adi_matrix_options($event,$step) {
     if ($installed) {
         // options
         echo tag(
-            tag('adi_matrix '.gTxt('plugin_prefs'),'h2')
-            // textpack links
-            .graf(href(gTxt('install_textpack'),'?event='.$event.'&amp;step=textpack'))
-            .graf(href(gTxt('adi_textpack_online'),$adi_matrix_url['textpack_download']))
-            .graf(href(gTxt('adi_textpack_feedback'),$adi_matrix_url['textpack_feedback']))
+            tag('adi_matrix '.gTxt('adi_matrix_edit_preferences'),'h2')
             .$uninstall_button
             ,'div'
             ,' style="text-align:center"'
@@ -3665,13 +3572,116 @@ function adi_matrix_options($event,$step) {
 
     if ($adi_matrix_debug) {
         echo "<p><b>Event:</b> ".$event.", <b>Step:</b> ".$step."</p>";
-        echo '<b>$adi_textpack ('.$adi_matrix_url['textpack'].'):</b>';
-        $adi_textpack = file_get_contents($adi_matrix_url['textpack']);
-        dmp($adi_textpack);
     }
 
 }
 
 # --- END PLUGIN CODE ---
+if (0) {
+?>
+<!--
+# --- BEGIN PLUGIN HELP ---
 
+h1. *adi_matrix* - Multi-article update tabs
+
+This plugin provides a way of viewing and updating multiple articles from a single TXP admin tab.
+
+Matrixes give you a summary view of multiple articles, where you can make changes to selected data & update them all in one go.
+
+Two new tabs do the work:
+
+* adi_matrix admin tab under Extensions
+* article matrix tab(s) under Contents or Home
+
+The admin tab defines the matrixes and the article matrix tabs display the required articles with their data.
+
+h2. *Installation*
+
+Installation of *adi_matrix* adds a new table to your Textpattern database which should not interfere with anything else.
+
+*adi_matrix* is designed to make changes to groups of article.  I suggest that you make backups before installation of this plugin and during initial testing on your site.  I can thoroughly recommend "rss_admin_db_manager":http://forum.textpattern.com/viewtopic.php?id=10395 to do database backups before installation.
+
+h2. *adi_matrix admin tab*
+
+This is where you set up the article matrixes.  There are three aspects to this:
+
+h3. Matrix appearance
+
+Here you can:
+
+* give the matrix a name (which will be used to list it under the Contents tab)
+* specify the order in which articles should be listed
+* specify whether a single user or all users are to get access to the matrix
+* specify whether access to the matrix is based on privileges or not
+* specify which tab to display the matrix under
+* permit users to add/delete articles
+* define how the matrix is laid out
+
+h3. Article selection criteria
+
+By default all articles will be listed in the matrix, but you can narrow it down according to:
+
+* section
+* category
+* article status
+* author
+* keywords
+* posted & expires timestamps
+* custom WHERE clause condition
+
+h3. Article data display
+
+This is where you define what data the user can see and change. Article that can be viewed & updated in matrixes:
+
+* article status
+* custom fields
+* article image
+* keywords
+* categories
+* posted & expires timestamps
+* title
+* section
+
+h3. Preferences
+
+* maximum number of articles to be listed
+* display article ID
+* article title highlighting (indicate future or expired articles)
+* article title tooltips (show ID, posted & expires timestamps in tooltip)
+* input field tooltips (show contents of input field in a tooltip)
+
+h2. *Getting started*
+
+A new matrix can be added in *adi_matrix* admin tab simply by entering its details into the blank spaces.  As a minimum, a matrix name needs to be provided.
+
+Once a matrix has been defined, it's settings can be changed at any time.  The new matrix will seen under the Contents or Home tabs after you have visited at least one other TXP tab (a hop is required so that the the tab contents are refreshed).
+
+h2. *Article matrixes*
+
+The matrix tabs show a number of articles, with their associated "data". If you are the article author or have sufficient overriding privileges then you can make changes to the data & update all articles with a single click.
+
+Note that only articles where you have actually changed anything will be updated - together with their __Last Modified Date__ and __Author__.
+
+*adi_matrix* respects all the standard restrictions on who can make changes to articles - based on authorship & privilege level.
+
+h2. *glz_custom_fields*
+
+*adi_matrix* will automatically detect if *glz_custom_fields* is installed and should play nicely.
+
+h2. *TinyMCE*
+
+If *glz_custom_fields* is installed you have the opportunity to use "TinyMCE":http://www.tinymce.com/ to edit textarea custom fields.  Note that TinyMCE must be installed separately.  To use it with *adi_matrix*, switch it on in the admin tab and fill in the configuration details.
+
+h2. *Uninstalling adi_matrix*
+
+To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No articles will be harmed in the process.
+
+h2(adi_extras). *Additional information*
+
+p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_matrix.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.
+
+# --- END PLUGIN HELP ---
+-->
+<?php
+}
 ?>
