@@ -2388,6 +2388,8 @@ function adi_matrix_uninstall() {
     $res = safe_query("DROP TABLE ".safe_pfx('adi_matrix').";",$adi_matrix_debug);
     // delete preferences
     $res = $res && safe_delete('txp_prefs',"name LIKE 'adi_matrix_%'",$adi_matrix_debug);
+    // delete textpack
+    $res = $res && safe_delete('txp_lang',"owner = 'adi_matrix'",$adi_matrix_debug);
 
     return $res;
 }
