@@ -1,0 +1,16 @@
+{
+  "name": "bloke/adi_matrix",
+  "description": "Multi-article update tabs",
+  "keywords": ["textpattern", "plugin", "article", "bulk", "update", "mass", "multiple", "fields"],
+  "homepage": "https://github.com/bloke/adi_matrix",
+  "license": "LGPL-2.1",
+  "type": "textpattern-plugin",
+  "support": {
+    "issues": "https://github.com/bloke/adi_matrix/issues",
+    "source": "https://github.com/bloke/adi_matrix"
+  },
+  "require": {
+    "textpattern/lock": ">=4.7.0",
+    "textpattern/installer": "*"
+  }
+}

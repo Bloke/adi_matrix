@@ -1,0 +1,11 @@
+{
+  "name": "adi_matrix",
+  "description": "Multi-article update tabs",
+  "version": "2.1beta7",
+  "type": 1,
+  "author": "Adi Gilbert / Stef Dawson",
+  "author_uri": "https://stefdawson.com/",
+  "order": 5,
+  "flags": 3,
+  "help": {"file" : ["./README.textile"]}
+}

@@ -1,0 +1,105 @@
+h1. *adi_matrix* - Multi-article update tabs
+
+This plugin provides a way of viewing and updating multiple articles from a single TXP admin tab.
+
+Matrixes give you a summary view of multiple articles, where you can make changes to selected data & update them all in one go.
+
+Two new tabs do the work:
+
+* adi_matrix admin tab under Extensions
+* article matrix tab(s) under Contents or Home
+
+The admin tab defines the matrixes and the article matrix tabs display the required articles with their data.
+
+h2. *Installation*
+
+Installation of *adi_matrix* adds a new table to your Textpattern database which should not interfere with anything else.
+
+*adi_matrix* is designed to make changes to groups of article.  I suggest that you make backups before installation of this plugin and during initial testing on your site.  I can thoroughly recommend "rss_admin_db_manager":http://forum.textpattern.com/viewtopic.php?id=10395 to do database backups before installation.
+
+h2. *adi_matrix admin tab*
+
+This is where you set up the article matrixes.  There are three aspects to this:
+
+h3. Matrix appearance
+
+Here you can:
+
+* give the matrix a name (which will be used to list it under the Contents tab)
+* specify the order in which articles should be listed
+* specify whether a single user or all users are to get access to the matrix
+* specify whether access to the matrix is based on privileges or not
+* specify which tab to display the matrix under
+* permit users to add/delete articles
+* define how the matrix is laid out
+
+h3. Article selection criteria
+
+By default all articles will be listed in the matrix, but you can narrow it down according to:
+
+* section
+* category
+* article status
+* author
+* keywords
+* posted & expires timestamps
+* custom WHERE clause condition
+
+h3. Article data display
+
+This is where you define what data the user can see and change. Article that can be viewed & updated in matrixes:
+
+* article status
+* custom fields
+* article image
+* keywords
+* categories
+* posted & expires timestamps
+* title
+* section
+
+h3. Preferences
+
+* maximum number of articles to be listed
+* display article ID
+* article title highlighting (indicate future or expired articles)
+* article title tooltips (show ID, posted & expires timestamps in tooltip)
+* input field tooltips (show contents of input field in a tooltip)
+
+h2. *Getting started*
+
+A new matrix can be added in *adi_matrix* admin tab simply by entering its details into the blank spaces.  As a minimum, a matrix name needs to be provided.
+
+Once a matrix has been defined, it's settings can be changed at any time.  The new matrix will seen under the Contents or Home tabs after you have visited at least one other TXP tab (a hop is required so that the the tab contents are refreshed).
+
+h2. *Article matrixes*
+
+The matrix tabs show a number of articles, with their associated "data". If you are the article author or have sufficient overriding privileges then you can make changes to the data & update all articles with a single click.
+
+Note that only articles where you have actually changed anything will be updated - together with their __Last Modified Date__ and __Author__.
+
+*adi_matrix* respects all the standard restrictions on who can make changes to articles - based on authorship & privilege level.
+
+h2. *Textpack*
+
+To install the Textpack, go to the plugin's options page and click on "Install textpack".  This will copy & install it from a remote server. The number of language strings installed for your language will be displayed.
+
+If the Textpack installation fails (possibly due to an error accessing the remote site), the alternative is to click the "Textpack also available online":http://www.greatoceanmedia.com.au/textpack link.  This will take you to a website where the Textpack can be manually copied & pasted into the TXP Admin - Language tab.
+
+Updates and corrections to the Textpack are welcome - please use the "Textpack feedback":http://www.greatoceanmedia.com.au/textpack/?plugin=adi_matrix form.
+
+h2. *glz_custom_fields*
+
+*adi_matrix* will automatically detect if *glz_custom_fields* is installed and should play nicely.
+
+h2. *TinyMCE*
+
+If *glz_custom_fields* is installed you have the opportunity to use "TinyMCE":http://www.tinymce.com/ to edit textarea custom fields.  Note that TinyMCE must be installed separately.  To use it with *adi_matrix*, switch it on in the admin tab and fill in the configuration details.
+
+h2. *Uninstalling adi_matrix*
+
+To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No articles will be harmed in the process.
+
+h2(adi_extras). *Additional information*
+
+p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_matrix.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.

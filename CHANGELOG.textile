@@ -1,0 +1,111 @@
+h1. Changelog
+
+h2. 2.1beta7
+
+* fix function parameter order warning
+* add ability to reorder the matrices ('ordinal' column)
+
+h2. 2.1beta6
+
+* STRICTly fix for criteria_status error in admin tab
+
+h2. 2.1beta5
+
+* fixes for glz_cfs v2.0 (much thanks to jakob)
+
+h2. 2.1beta4
+
+* 4.7 fixes (paging)
+
+h2. 2.1
+
+* further updates for TXP 4.6
+* de-colon-isation
+
+h2. 2.0.1beta
+
+* fix: enforce unique IDs on glz_cfs checkbox input fields, so that the <input>/<for> tags match up
+
+h2. 2.0
+
+* enhancements:
+* publish & delete articles (for mrdale)
+* extra article data options: title, section
+* show sections
+* added section & author to article title tooltip
+* matrix under Content or Home tab
+* improved validation error messages
+* custom WHERE clause conditions
+* article list paging
+* requires TXP 4.5+
+* tested on TXP 4.6
+* fix: matrix privileges
+* improved validation message (URL-only titles)
+* article edit link styling
+* and as Apple says "Includes general performance and stability improvements", as well as code "sanity" improvements for my sake
+
+h2. 1.2
+
+* TXP 4.5-ified
+* French colon-isation
+* lifecycle "upgrade" pseudo-event
+
+h2. 1.1
+
+* code tidy up (thanks gocom)
+* enhancement: matrix tab optional footer
+* enhancement: matrix tab column sorting
+* enhancement: "Any parent" & "Any child" category wildcards
+* enhancement: posted timestamp (& reset)
+* enhancement: expires timestamp
+* enhancement: multi-section select (for maniqui & mrdale)
+* enhancement: input field tooltips (for masa)
+* for mrdale:
+** <body class="adi_matrix"> on all matrix tabs
+** another attempt at horizontal scrolling, this time with a fixed article title column
+** more sorting options
+** TinyMCE support for glz_custom_field textareas
+** option to include descendent categories
+* fixed: checkboxes again! (thanks redbot)
+* changed: "Nothing to do" message changed to "No articles modified"
+* changed: admin tab name/title now "Article Matrix"/"Article Matrix Admin"
+
+h2. 1.0.1
+
+* not officially released
+* fixed: completely unticked checkboxes not updated (thanks redbot)
+* fixed: detect glz_custom_fields in plugin cache (thanks gocom)
+
+h2. 1.0
+
+* enhancement: glz_custom_fields compatibility
+* enhancement: force numeric sort (for jpdupont)
+* enhancement: sort by Expires timestamp
+* enhancement: article catagories (for maniqui)
+* enhancement: option to switch on horizontal scroll (for mrdale)
+* fixed: MySQL 4.1 compatibility (thanks colak)
+* fixed: error if custom field contains single quote (thanks maniqui)
+* fixed: superfluous "Logged in user" wildcard option in matrix appearance
+* now uses lifecycle events
+
+h2. 0.3
+
+* enhancement: "One category", "Two categories" wildcards
+* enhancement: timestamp (for CeBe)
+* enhancement: expiry (for CeBe)
+* enhancement: future/expired articles highlighted & preference (for CeBe)
+* enhancement: article title tooltip, & preference
+* admin: install/uninstall/textpack moved to plugin options
+
+h2. 0.2
+
+* fixed: missing child categories (thanks Zanza)
+* enhancement: "No category", "Any category" wildcards
+* enhancement: "Logged in user" wildcard
+* enhancement: article image field (for Zanza)
+* enhancement: article limit preference (for milosevic)
+
+h2. 0.1
+
+* initial release
+
