@@ -330,7 +330,7 @@ class adi_matrix
                 $user_allowed = ($txp_user == $matrix['user']);
             } else {
                 // open to all users
-                $user_allowed = TRUE;
+                $user_allowed = true;
             }
 
             $has_privs = has_privs($matrix_event);
@@ -554,7 +554,7 @@ END_SCRIPT
     }
 
     // get matrix settings from database
-    public function read_settings($just_the_basics=FALSE)
+    public function read_settings($just_the_basics=false)
     {
         global $adi_matrix_cfs;
 
@@ -1081,7 +1081,7 @@ END_SCRIPT
     // update articles
     public function update_articles($updates,$matrix_index)
     {
-        $res = TRUE;
+        $res = true;
 
         if ($updates) {
             foreach ($updates as $id => $data)
@@ -1149,7 +1149,7 @@ END_SCRIPT
         $defaults['keywords'] = $adi_matrix_list[$matrix_index]['criteria_keywords'];
 
         // category1 - if specific category set - assign it to cat1, otherwise leave it up to user (i.e. blank)
-        if (($adi_matrix_list[$matrix_index]['criteria_category']) && (strpos($adi_matrix_list[$matrix_index]['criteria_category'],'!') === FALSE)) {
+        if (($adi_matrix_list[$matrix_index]['criteria_category']) && (strpos($adi_matrix_list[$matrix_index]['criteria_category'],'!') === false)) {
             $defaults['category1'] = $adi_matrix_list[$matrix_index]['criteria_category'];
         } else {
             $defaults['category1'] = '';
@@ -1437,11 +1437,11 @@ END_SCRIPT
                     do_pings();
                     update_lastmod();
                 }
-                return TRUE;
+                return true;
             }
         }
 
-        return FALSE;
+        return false;
     }
 
     // delete an article - ripped off from list_multi_edit() in txp_list.php
@@ -1471,10 +1471,10 @@ END_SCRIPT
         $changed = implode(', ', $ids);
         if ($changed) {
             safe_update('txp_discuss', "visible = ".MODERATE, "parentid in($changed)",$this->debug);
-            return TRUE;
+            return true;
         }
 
-        return FALSE;
+        return false;
     }
 
     // output custom field input according to glz_custom_fields format
@@ -1610,7 +1610,7 @@ END_SCRIPT
                         echo 'id='.$id.', field='.$field.', new_value='.$new_value.' (NEW ARTICLE)'.br;
                     }
                 } else { // existing article
-                    $equal = TRUE;
+                    $equal = true;
                     $old_value = $adi_matrix_articles[$id][$field];
                     $test_value = $new_value;
 
@@ -1623,7 +1623,7 @@ END_SCRIPT
                         // date/time requires special attention (because DB time may be different to TXP human time,
                         // so direct comparison not valid)
                         if (array_key_exists('reset_time',$new_value)) {
-                            $equal = FALSE; // force inequality - "NOW()" time will be set in database update
+                            $equal = false; // force inequality - "NOW()" time will be set in database update
                             if ($this->debug) {
                                 echo 'id='.$id.', field='.$field.' (RESET)';
                             }
@@ -1709,7 +1709,7 @@ END_SCRIPT
                     // check it's a valid date/time
                     $error = (!is_numeric($value['year']) || !is_numeric($value['month']) || !is_numeric($value['day']) || !is_numeric($value['hour'])  || !is_numeric($value['minute']) || !is_numeric($value['second']));
                     $ts = strtotime($value['year'].'-'.$value['month'].'-'.$value['day'].' '.$value['hour'].':'.$value['minute'].':'.$value['second']);
-                    $error = $error || ($ts === FALSE || $ts === -1);
+                    $error = $error || ($ts === false || $ts === -1);
                     // special case - allow all blanks in expires
                     if ($error && ($field == 'expires')) {
                         $error = !(empty($value['year']) && empty($value['month']) && empty($value['day']) && empty($value['hour']) && empty($value['minute']) && empty($value['second']));
@@ -2105,16 +2105,16 @@ END_SCRIPT
                 // category1
                 if ($adi_matrix_list[$matrix_index]['category1'])
                     $has_privs ? // decide if user gets input fields or not
-                        $out .= tda($this->category_popup($prefix."[category1]",$data['category1'],FALSE),' class="adi_matrix_category adi_matrix_field_category1"') :
+                        $out .= tda($this->category_popup($prefix."[category1]",$data['category1'],false),' class="adi_matrix_category adi_matrix_field_category1"') :
                         $out .= ($data['category1'] ? tda($data['category1'],' class="adi_matrix_field_category1"') : tda(sp,' class="adi_matrix_category adi_matrix_field_category1"'));
                 // category2
                 if ($adi_matrix_list[$matrix_index]['category2'])
                     $has_privs ? // decide if user gets input fields or not
-                        $out .= tda($this->category_popup($prefix."[category2]",$data['category2'],FALSE),' class="adi_matrix_category adi_matrix_field_category2"') :
+                        $out .= tda($this->category_popup($prefix."[category2]",$data['category2'],false),' class="adi_matrix_category adi_matrix_field_category2"') :
                         $out .= ($data['category2'] ? tda($data['category2'],' class="adi_matrix_field_category2"') : tda(sp,' class="adi_matrix_category adi_matrix_field_category2"'));
                 // posted
                 $class = 'adi_matrix_timestamp adi_matrix_field_posted';
-                if (array_search('posted',$article_errors) !== FALSE)
+                if (array_search('posted',$article_errors) !== false)
                     $class .= ' adi_matrix_error';
                 if ($adi_matrix_list[$matrix_index]['posted'])
                     $has_privs ? // decide if user gets input fields or not
@@ -2122,7 +2122,7 @@ END_SCRIPT
                         $out .= ($data['posted'] ? tda($data['posted']) : tda(sp));
                 // expires
                 $class = 'adi_matrix_timestamp adi_matrix_field_expires';
-                if (array_search('expires',$article_errors) !== FALSE)
+                if (array_search('expires',$article_errors) !== false)
                     $class .= ' adi_matrix_error';
                 if ($adi_matrix_list[$matrix_index]['expires'])
                     $has_privs ? // decide if user gets input fields or not
@@ -2224,10 +2224,10 @@ END_SCRIPT
             $out .= tda('<textarea name="'.$prefix."[keywords]".'" cols="18" rows="5" class="mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $defaults['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"');
         // category1
         if ($adi_matrix_list[$matrix_index]['category1'])
-            $out .= tda($this->category_popup($prefix."[category1]",$defaults['category1'],FALSE),' class="adi_matrix_category adi_matrix_field_category1"');
+            $out .= tda($this->category_popup($prefix."[category1]",$defaults['category1'],false),' class="adi_matrix_category adi_matrix_field_category1"');
         // category2
         if ($adi_matrix_list[$matrix_index]['category2'])
-            $out .= tda($this->category_popup($prefix."[category2]",$defaults['category2'],FALSE),' class="adi_matrix_category adi_matrix_field_category2"');
+            $out .= tda($this->category_popup($prefix."[category2]",$defaults['category2'],false),' class="adi_matrix_category adi_matrix_field_category2"');
         // posted
         if ($adi_matrix_list[$matrix_index]['posted'])
             $out .= tda($this->timestamp_input($prefix."[posted]",$defaults['posted'],$defaults['uposted'],'posted'),' class="adi_matrix_timestamp adi_matrix_field_posted"');
@@ -2274,9 +2274,9 @@ END_SCRIPT
         // sort it all out
         if ($new_sort || $new_dir || $new_sort_type || $reset_sort) {
             if ($new_sort && $new_dir) // column heading clicked
-                $this->get_pref($event.'_sort',$new_sort.','.$new_dir.','.$sort_type,TRUE); // update user pref with sort & dir
+                $this->get_pref($event.'_sort',$new_sort.','.$new_dir.','.$sort_type,true); // update user pref with sort & dir
             elseif ($new_sort_type) // sort_type change
-                $this->get_pref($event.'_sort',$sort.','.$dir.','.$new_sort_type,TRUE); // update user pref with sort_type
+                $this->get_pref($event.'_sort',$sort.','.$dir.','.$new_sort_type,true); // update user pref with sort_type
             elseif ($reset_sort) { // reset sort to default
                 safe_delete('txp_prefs',"name = '".$event."_sort'",$this->debug); // delete user pref
                 unset($prefs[$event.'_sort']);
@@ -2310,7 +2310,7 @@ END_SCRIPT
         // paging Mr. Matrix
         if ($step == $event.'_change_pageby') { // change of page length
             $qty = gps('qty');
-            $this->get_pref($event.'_pageby',$qty,TRUE);
+            $this->get_pref($event.'_pageby',$qty,true);
         }
         $page = gps('page'); // get page number
         $pageby = get_pref($event.'_pageby',($this->is_txp470 ? 12 : 15)); // get current page size (paging default, if not saved as pref)
@@ -2388,7 +2388,7 @@ END_SCRIPT
         // output matrix table & input form
         $table = $this->matrix_table($adi_matrix_articles,$matrix_index,$page,$errors,$updates);
         $tags = array('<input', '<textarea', '<select'); // tags which indicate that a save button is deserved
-        $save_button = FALSE;
+        $save_button = false;
         foreach ($tags as $tag)
             $save_button = $save_button || strpos($table,$tag);
         $class = 'adi_matrix_matrix';
@@ -2493,9 +2493,9 @@ END_SCRIPT
         $a = nextRow($rs);
 
         if ($a) {
-            return TRUE;
+            return true;
         } else {
-            return FALSE;
+            return false;
         }
     }
 
@@ -2586,7 +2586,7 @@ END_SCRIPT
         }
 
         if ($upgrade) {
-            $result = $result && $this->upgrade(TRUE);
+            $result = $result && $this->upgrade(true);
         }
 
         if ($this->debug) {
@@ -2595,9 +2595,9 @@ END_SCRIPT
     }
 
     // check/perform upgrade
-    public function upgrade($do_upgrade=FALSE)
+    public function upgrade($do_upgrade=false)
     {
-        $upgrade_required = FALSE;
+        $upgrade_required = false;
         // version 0.2
         $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'article_image'",$this->debug); // find out if column exists
         $a = nextRow($rs);
@@ -2635,7 +2635,7 @@ END_SCRIPT
         $upgrade_required = $upgrade_required || $v2_1;
 
         if ($do_upgrade && $upgrade_required) {
-            $res = TRUE;
+            $res = true;
             if ($v0_2)
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `article_image` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
             if ($v0_3t)
@@ -2704,7 +2704,7 @@ END_SCRIPT
     // downgrade to previous version - 2.0 to 1.1/1.2 only
     public function downgrade()
     {
-        $res = TRUE;
+        $res = true;
         $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `title`",$this->debug);
         $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `publish`",$this->debug);
         $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `show_section`",$this->debug);
@@ -2732,7 +2732,7 @@ END_SCRIPT
     }
 
     // find all descendents of a given parent
-    public function cat_descendents($tree,$parent=NULL,$found=FALSE)
+    public function cat_descendents($tree,$parent=NULL,$found=false)
     {
         $return = array();
 
@@ -2770,10 +2770,10 @@ END_SCRIPT
     }
 
     // generate section popup list for admin settings table
-    // where 'TRUE' not supported on MySQL 4.0.27 (OK in MySQL 5+), so use 1=1
+    // where 'true' not supported on MySQL 4.0.27 (OK in MySQL 5+), so use 1=1
     public function section_popup($select_name,$value,$list='')
     {
-        $blank_allowed = TRUE;
+        $blank_allowed = true;
         $where = "name != 'default'";
 
         // set up where condition if section list supplied
@@ -2785,7 +2785,7 @@ END_SCRIPT
             }
 
             $where .= 'AND name in ('.implode(',',$a).')';
-            $blank_allowed = FALSE;
+            $blank_allowed = false;
         }
 
         $rs = safe_column('name', 'txp_section', $where);
@@ -2794,7 +2794,7 @@ END_SCRIPT
             return selectInput($select_name, $rs, $value, $blank_allowed);
         }
 
-        return FALSE;
+        return false;
     }
 
     // generate section checkboxes
@@ -2807,17 +2807,17 @@ END_SCRIPT
 
         if ($rs) {
             foreach ($rs as $section) {
-                $out .= tag(checkbox($field_name.'[]',$section,(array_search($section,$section_list) !== FALSE ? '1' : '0')).sp.$section,'label');
+                $out .= tag(checkbox($field_name.'[]',$section,(array_search($section,$section_list) !== false ? '1' : '0')).sp.$section,'label');
             }
 
             return $out;
         }
 
-        return FALSE;
+        return false;
     }
 
     // generate category popup list for admin settings table
-    public function category_popup($select_name,$value,$admin=TRUE)
+    public function category_popup($select_name,$value,$admin=true)
     {
         $rs = getTree('root','article');
 
@@ -2842,7 +2842,7 @@ END_SCRIPT
     {
         $opts = $this->get_statuses();
 
-        return selectInput($select_name, $opts, $value, TRUE);
+        return selectInput($select_name, $opts, $value, true);
     }
 
     // generate timestamp popup list for admin settings table
@@ -2854,7 +2854,7 @@ END_SCRIPT
             'future' => gTxt('adi_matrix_time_future'),
         );
 
-        return selectInput($select_name, $opts, $value, FALSE);
+        return selectInput($select_name, $opts, $value, false);
     }
 
     // generate expiry timestamp popup list for admin settings table
@@ -2867,11 +2867,11 @@ END_SCRIPT
             3 => gTxt('expired'),
         );
 
-        return selectInput($select_name, $opts, $value, FALSE);
+        return selectInput($select_name, $opts, $value, false);
     }
 
     // generate user/author popup list for admin settings table
-    public function user_popup($select_name,$value,$wildcard=FALSE)
+    public function user_popup($select_name,$value,$wildcard=false)
     {
         static $allusers = array();
 
@@ -2885,7 +2885,7 @@ END_SCRIPT
                 $allusers = $logged_in_user + $allusers; /* add to front of array */
             }
 
-            return selectInput($select_name, $allusers, $value, TRUE);
+            return selectInput($select_name, $allusers, $value, true);
         }
 
         return false;
@@ -2907,7 +2907,7 @@ END_SCRIPT
             $matrix_groups[$index] = gTxt($group);
         }
 
-        return selectInput($select_name, $matrix_groups, $value, TRUE);
+        return selectInput($select_name, $matrix_groups, $value, true);
     }
 
     // generate tab popup list for admin settings table
@@ -3039,7 +3039,7 @@ END_SCRIPT
     {
         global $adi_matrix_cfs;
 
-        $res = FALSE;
+        $res = false;
 
         foreach ($_POST as $index => $value) {
             $data = doArray($value,'doStripTags'); // strip out monkey business
@@ -3261,9 +3261,9 @@ END_SCRIPT
                     tda(
                         graf(tag(gTxt('name'),'label').finput("text","matrix_".$matrix_index."[name]",$matrix['name']))
                         .graf(tag(gTxt('adi_matrix_order'),'label').finput("text","matrix_".$matrix_index."[ordinal]",$matrix['ordinal']))
-                        .graf(tag(gTxt('adi_matrix_sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$sort_options,$matrix['sort'],FALSE))
-                        .graf(tag(gTxt('adi_matrix_sort_direction'),'label').selectInput("matrix_".$matrix_index."[dir]",$sort_dirs,$matrix['dir'],FALSE))
-                        .graf(tag(gTxt('adi_matrix_sort_type'),'label').selectInput("matrix_".$matrix_index."[sort_type]",$sort_types,$matrix['sort_type'],FALSE))
+                        .graf(tag(gTxt('adi_matrix_sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$sort_options,$matrix['sort'],false))
+                        .graf(tag(gTxt('adi_matrix_sort_direction'),'label').selectInput("matrix_".$matrix_index."[dir]",$sort_dirs,$matrix['dir'],false))
+                        .graf(tag(gTxt('adi_matrix_sort_type'),'label').selectInput("matrix_".$matrix_index."[sort_type]",$sort_types,$matrix['sort_type'],false))
                         .graf(tag(gTxt('adi_matrix_user'),'label').$this->user_popup("matrix_".$matrix_index."[user]",$matrix['user']))
                         .graf(tag(gTxt('privileges'),'label').$this->privs_popup("matrix_".$matrix_index."[privs]",$matrix['privs']))
                         .graf(
@@ -3357,7 +3357,7 @@ END_SCRIPT
                         .graf(tag(gTxt('category'),'label').$this->category_popup("matrix_".$matrix_index."[criteria_category]",$matrix['criteria_category']))
                         .graf(tag(checkbox("matrix_".$matrix_index."[criteria_descendent_cats]",1,$matrix['criteria_descendent_cats']).sp.gTxt('adi_matrix_include_descendent_cats'),'label',' class="adi_matrix_label2"'))
                         .graf(tag(gTxt('status'),'label').$this->status_popup("matrix_".$matrix_index."[criteria_status]",$matrix['criteria_status']))
-                        .graf(tag(gTxt('author'),'label').$this->user_popup("matrix_".$matrix_index."[criteria_author]",$matrix['criteria_author'],TRUE))
+                        .graf(tag(gTxt('author'),'label').$this->user_popup("matrix_".$matrix_index."[criteria_author]",$matrix['criteria_author'],true))
                         .graf(tag(gTxt('keywords'),'label').finput("text","matrix_".$matrix_index."[criteria_keywords]",$matrix['criteria_keywords']))
                         .graf(tag(gTxt('timestamp'),'label').$this->timestamp_popup("matrix_".$matrix_index."[criteria_timestamp]",$matrix['criteria_timestamp']))
                         .graf(tag(gTxt('adi_matrix_expiry'),'label').$this->expiry_popup("matrix_".$matrix_index."[criteria_expiry]",$matrix['criteria_expiry']))
@@ -3419,7 +3419,7 @@ height: "400",
     }
 
     // read or set pref
-    public function get_pref($name,$value=NULL,$private=FALSE)
+    public function get_pref($name,$value=NULL,$private=false)
     {
         global $prefs;
 
@@ -3442,7 +3442,7 @@ height: "400",
             }
 
             $res = set_pref($name,$value,'adi_matrix_admin',2,$html,0,$private);
-            $prefs[$name] = get_pref($name,$value,TRUE); //??? JUST USE THIS LINE?
+            $prefs[$name] = get_pref($name,$value,true); //??? JUST USE THIS LINE?
 
             return $res;
         }
@@ -3571,7 +3571,7 @@ END_SCRIPT
             if ($upgrade_required) {
                 $message = array(gTxt('adi_matrix_upgrade_required'),E_WARNING);
             } else { // custom field musical chairs
-                $cfs_fiddled = FALSE;
+                $cfs_fiddled = false;
 
                 // add additional custom fields that may have suddenly appeared (glz_cfs: custom_11+)
                 foreach ($adi_matrix_cfs as $index => $value) {
@@ -3580,7 +3580,7 @@ END_SCRIPT
 
                     if (empty($a)) {
                         safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." ADD `custom_$index` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                        $cfs_fiddled = TRUE;
+                        $cfs_fiddled = true;
                     }
                 }
 
@@ -3590,13 +3590,13 @@ END_SCRIPT
 
                 while ($a = nextRow($rs)) { // get list of cf indexes from adi_matrix
                     $index = substr($a['Field'],7); // strip 'custom_' from 'custom_x'
-                    $current_cfs[$index] = TRUE;
+                    $current_cfs[$index] = true;
                 }
 
                 foreach ($current_cfs as $index => $value) {
                     if (!array_key_exists($index,$adi_matrix_cfs)) {
                         safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." DROP COLUMN `custom_$index`",$this->debug);
-                        $cfs_fiddled = TRUE;
+                        $cfs_fiddled = true;
                     }
 
                 }
@@ -3617,7 +3617,7 @@ END_SCRIPT
             $result = $this->delete($matrix_index);
             $result ? $message = gTxt('adi_matrix_deleted') : $message = array(gTxt('adi_matrix_delete_fail'),E_ERROR);
         } elseif ($step == 'update_prefs') {
-            $result = TRUE;
+            $result = true;
 
             foreach ($matrix_prefs as $name => $data) {
                 if (array_key_exists($name,$_POST)) {
@@ -3902,7 +3902,7 @@ END_SCRIPT
         }
 
         if ($step == 'upgrade') {
-            $result = $this->upgrade(TRUE);
+            $result = $this->upgrade(true);
             $result ? $message = gTxt('adi_matrix_upgraded') : $message = array(gTxt('adi_matrix_upgrade_fail'),E_ERROR);
         } elseif ($step == 'downgrade') {
             $result = $this->downgrade();
