@@ -395,41 +395,27 @@ class adi_matrix
         global $prefs;
 
         $rules = <<<EOCSS
-/* adi_matrix */
-/* general */
-.txp-body { max-width:none }
-table#list td { padding:0.5em }
-.adi_matrix_button { margin:1em auto; text-align:center }
-.txp-list { width:auto; margin:0 auto }
 /* admin tab */
 .adi_matrix_admin input.radio { margin-left:0.5em }
-.adi_matrix_admin form { text-align:center }
 .adi_matrix_admin table#list td { padding:0.5em 0.5em 0 }
-.adi_matrix_field { text-align:left }
 .adi_matrix_field label { display:block; float:left; width:8em }
 .adi_matrix_field label.adi_matrix_label2 { width:auto }
 .adi_matrix_field p { overflow:hidden; margin-top:0; min-height:1.4em }
 .adi_matrix_field p > span { float:left; width:8em } /* pseudo label */
 .adi_matrix_field p > span + label, .adi_matrix_field p > span + label + label { width:auto } /* radio labels */
 .adi_matrix_field p label.adi_matrix_checkbox { width:auto }
-.adi_matrix_field p label.adi_matrix_checkbox input { float:left; margin-top:0.2em }
+.adi_matrix_field p label.adi_matrix_checkbox input { float:left; }
 .adi_matrix_field p label.adi_matrix_checkbox span { display:block; float:left; width:8em }
 .adi_matrix_custom_field label { width:12em }
 .adi_matrix_multi_checkboxes { margin:0.3em 0 0.5em; height:5em; padding:0.2em; overflow:auto; border:1px solid #ccc }
 .adi_matrix_multi_checkboxes label { float:none; width:auto }
 .adi_matrix_prefs { margin-top:5em; text-align:center }
 .adi_matrix_prefs input.checkbox { margin-left:0.5em }
-.adi_matrix_prefs input.smallerbox { margin-left:0 }
-.adi_matrix_prefs .adi_matrix_radio label { margin-right:1em }
-.adi_matrix_prefs .adi_matrix_radio input { margin-left:0.5em }
-.adi_matrix_admin .adi_matrix_delete a { font-size:120% }
 /* matrix tabs */
-.adi_matrix_matrix h1 { margin-top:0; text-align:center; font-weight:bold }
 .adi_matrix_matrix table#list th.adi_matrix_noborder { border:0 }
 .adi_matrix_matrix table#list .adi_matrix_delete { font-weight:normal; text-align:center }
 .adi_matrix_matrix table#list .adi_matrix_delete a { font-size:120% }
 .adi_matrix_matrix table#list td.adi_matrix_add { font-size:120% }
-.adi_matrix_matrix .date input { margin-top:0 }
 .adi_matrix_none { margin-top:2em; text-align:center }
 .adi_matrix_field_title { white-space:nowrap } /* stops edit link dropping below */
 .adi_matrix_timestamp { white-space:nowrap } /* stops date or time being split */
@@ -465,7 +451,8 @@ html[xmlns] td.glz_custom_date-picker_field.clearfix { display:table-cell!import
 table#list tfoot td { font-weight:bold }
 table#list tfoot td.desc a,
 table#list tfoot td.asc a { width:auto; background-color:transparent; background-image:url("./txp_img/arrowupdn.gif"); background-repeat: no-repeat; background-attachment: scroll; background-position: right -18px; padding-right: 14px; margin-right: 0pt }
-table#list tfoot td.asc a { background-position: right 2px }
+table#list tfoot td.asc a { background-position: right 2px }    /* TXP 4.6 only */
+    .adi_matrix_view_link span + span { display:none }
 EOCSS;
 
         if ($prefs['theme_name'] == 'hive') {
@@ -486,8 +473,8 @@ EOCSS;
 
         if ($this->is_txp460) {
             $rules .= <<<EOCSS
-    /* TXP 4.6 only */
-    .adi_matrix_view_link span + span { display:none }
+/* TXP 4.6 only */
+.adi_matrix_view_link span + span { display:none }
 EOCSS;
         }
 
@@ -3215,6 +3202,7 @@ END_SCRIPT
             $data = doArray($value,'doStripTags'); // strip out monkey business
 
             $this_index = explode('_',$index);
+
             if ($this_index[0] == 'matrix') {
                 $matrix_index = $this_index[1];
 
@@ -3887,22 +3875,26 @@ END_SCRIPT
             $matrix_select = selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id');
 
             // output table & input form
-            echo $matrix_select . n . form(
-                startTable('list','','txp-list')
-                .$this->admin_table($adi_matrix_list,$adi_matrix_cfs)
-                .endTable()
-                .tag(
-                    fInput("submit","do_something",gTxt('save'),"publish")
-                    .eInput("adi_matrix_admin")
-                    .sInput("update")
-                    ,'div'
-                    ,' class="adi_matrix_button"'
-                )
-                ,''
-                ,''
-                ,'post'
-                ,'adi_matrix_admin'
-            );
+            echo $matrix_select . n .
+                    fInput('submit', array(
+                        'name' => 'do_something',
+                        'class' => 'navlink',
+                        'form' => 'adi_matrix_admin_form',
+                        ),
+                        gTxt('save'))
+                .form(
+                    startTable('list','','txp-list')
+                    .$this->admin_table($adi_matrix_list,$adi_matrix_cfs)
+                    .endTable()
+                    .eInput('adi_matrix_admin')
+                    .sInput('update')
+                    ,''
+                    ,''
+                    ,'post'
+                    ,'adi_matrix_admin'
+                    ,''
+                    ,'adi_matrix_admin_form'
+                );
             // preferences
             echo form(
                 tag(
