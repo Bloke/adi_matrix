@@ -310,9 +310,11 @@ class adi_matrix
         }
 
         $all_privs = '1,2,3,4,5,6'; // everybody
+
         foreach ($adi_matrix_list as $index => $matrix) {
             $matrix_event = 'adi_matrix_matrix_'.$index;
             $matrix_tab_name = $matrix['name'];
+
             if ($matrix['privs']) {
                 $priv_set = $this->privs[$matrix['privs']];
             } else {
@@ -492,7 +494,17 @@ EOCSS;
     public function matrix_admin_script()
     {
         echo script_js(<<<END_SCRIPT
-$(function(){
+$(function() {
+    var adi_matrix_last_edited = localStorage.getItem('adi_matrix_selected');
+console.log('lastone', adi_matrix_last_edited);
+    if ($("#matrix_id option[value='"+adi_matrix_last_edited+"']").length == 0) {
+        adi_matrix_last_edited = 'new';
+        localStorage.setItem('adi_matrix_selected', 'new');
+console.log('resetting new');
+    }
+
+    $('#matrix_id').val(adi_matrix_last_edited);
+
     $("#peekaboo").hide();
     $('input[name="adi_matrix_tiny_mce"][value="1"]:checked').each(function(){
         $("#peekaboo").show();
@@ -503,6 +515,14 @@ $(function(){
     $('input[name="adi_matrix_tiny_mce"]:radio:eq(1)').change(function(){
         $("#peekaboo").hide();
     });
+
+    // Handle hide/show of the matrices and store the selected one.
+    $('#matrix_id').on('change', function(e) {
+        let sel = this.value;
+        $('.adi_matrix_admin tr').hide();
+        $('.adi_matrix_admin #matrix_id_'+sel).show();
+        localStorage.setItem('adi_matrix_selected', sel);
+    }).change();
 });
 END_SCRIPT
         );
@@ -538,7 +558,8 @@ END_SCRIPT
 
         $rs = safe_rows_start('*','adi_matrix',"1=1 ORDER BY `ordinal` ASC, `id` ASC");
         $matrix_list = array();
-        if ($rs)
+
+        if ($rs) {
             while ($a = nextRow($rs)) {
                 extract($a);
                 // just enough to display matrix tab
@@ -552,16 +573,24 @@ END_SCRIPT
                 // load in the rest
                 if (!$just_the_basics) {
                     $the_rest = array('sort','dir','sort_type','scroll','footer','title','publish','show_section','cf_links','criteria_section','criteria_category','criteria_descendent_cats','criteria_status','criteria_author','criteria_keywords','criteria_timestamp','criteria_expiry','criteria_condition','status','keywords','article_image','category1','category2','posted','expires','section');
-                    foreach ($the_rest as $item)
+
+                    foreach ($the_rest as $item) {
                         $matrix_list[$id][$item] = $$item;
+                    }
+
                     // custom fields
                     foreach ($adi_matrix_cfs as $index => $value) {
                         $custom_x = 'custom_'.$index;
-                        if (isset($$custom_x)) // check that custom field is known to adi_matrix
+
+                        if (isset($$custom_x)) {
+                            // check that custom field is known to adi_matrix
                             $matrix_list[$id][$custom_x] = $$custom_x;
+                        }
                     }
                 }
             }
+        }
+
         return $matrix_list;
     }
 
@@ -768,7 +797,7 @@ END_SCRIPT
     // read required articles from database and populate $adi_matrix_articles
     public function get_articles($matrix_index,$offset,$limit,$where='1',$sortq='')
     {
-        global $adi_matrix_cfs,$adi_matrix_list,$txp_user;
+        global $adi_matrix_cfs,$adi_matrix_list;
 
         $adi_matrix_articles = array();
 
@@ -974,12 +1003,15 @@ END_SCRIPT
         }
         // posted
         $postedq = '';
+
         if (isset($data['posted'])) {
-            if ($publish_now)
+            if ($publish_now) {
                 $postedq = "Posted=now(), ";
-            else { // convert TXP date/time to DB timestamp
+            } else {
+                // convert TXP date/time to DB timestamp
                 $ts = strtotime($Posted);
                 $date_error = ($ts === false || $ts === -1);
+
                 if (!$date_error) {
                     $when_ts = $ts - tz_offset($ts);
                     $when = "from_unixtime($when_ts)";
@@ -1557,15 +1589,24 @@ END_SCRIPT
             echo '<b>Update processing (adi_matrix_get_updates):</b>'.br;
 
         $adi_matrix_updates = array();
+
         foreach ($adi_matrix_post as $id => $data) {
             foreach ($data as $field => $new_value) {
-                if (($field == 'posted') || ($field == 'expires'))
+                if (($field == 'posted') || ($field == 'expires')) {
                     $date_string = $new_value['year'].'-'.$new_value['month'].'-'.$new_value['day'].' '.$new_value['hour'].':'.$new_value['minute'].':'.$new_value['second']; // set up new date/time string
-                if ($id == 'new') { // new article
+                }
+
+                if ($id == 'new') {
+                    // new article
                     $adi_matrix_updates[$id][$field] = $new_value;
-                    if (($field == 'posted') || ($field == 'expires'))
+
+                    if (($field == 'posted') || ($field == 'expires')) {
                         $new_value = $date_string; // use new time date/time string
-                    if ($this->debug) echo 'id='.$id.', field='.$field.', new_value='.$new_value.' (NEW ARTICLE)'.br;
+                    }
+
+                    if ($this->debug) {
+                        echo 'id='.$id.', field='.$field.', new_value='.$new_value.' (NEW ARTICLE)'.br;
+                    }
                 } else { // existing article
                     $equal = TRUE;
                     $old_value = $adi_matrix_articles[$id][$field];
@@ -1635,14 +1676,15 @@ END_SCRIPT
 
         // create array of empties indexed by $adi_matrix_validation_errors id
         $new_error_list = array();
-        foreach ($adi_matrix_validation_errors as $i => $v)
+        foreach ($adi_matrix_validation_errors as $i => $v) {
             $new_error_list[$i] = array();
+        }
 
         foreach ($post_data as $id => $data) {
-
             // add empty "error" slots for article
-            foreach ($adi_matrix_validation_errors as $i => $v)
+            foreach ($adi_matrix_validation_errors as $i => $v) {
                 $new_error_list[$i][$id] = array();
+            }
 
             // remember old timestamp values (existing articles only)
             if ($id != 'new') {
@@ -1656,16 +1698,21 @@ END_SCRIPT
                 if (($field == 'posted') || ($field == 'expires')) {
                     // record new (i.e. $_POSTed) timestamp values
                     $$field = $value['year'].'-'.$value['month'].'-'.$value['day'].' '.$value['hour'].':'.$value['minute'].':'.$value['second'];
-                    if ($field == 'posted')
-                        if (array_key_exists('reset_time',$value))
+                    if ($field == 'posted') {
+                        if (array_key_exists('reset_time',$value)) {
                             $$field = date('Y-m-d H:i:s',time()); // have to predict the reset date/time (Article tab does it this way too!)
+                        }
+                    }
+
                     // check it's a valid date/time
                     $error = (!is_numeric($value['year']) || !is_numeric($value['month']) || !is_numeric($value['day']) || !is_numeric($value['hour'])  || !is_numeric($value['minute']) || !is_numeric($value['second']));
                     $ts = strtotime($value['year'].'-'.$value['month'].'-'.$value['day'].' '.$value['hour'].':'.$value['minute'].':'.$value['second']);
                     $error = $error || ($ts === FALSE || $ts === -1);
                     // special case - allow all blanks in expires
-                    if ($error && ($field == 'expires'))
+                    if ($error && ($field == 'expires')) {
                         $error = !(empty($value['year']) && empty($value['month']) && empty($value['day']) && empty($value['hour']) && empty($value['minute']) && empty($value['second']));
+                    }
+
                     if ($error) {
                         if ($id != 'new')
                             $$field = $adi_matrix_articles[$id][$field]; // restore old value (so it doesn't influence later "expires before posted" checking)
@@ -1750,7 +1797,7 @@ END_SCRIPT
     // plot in the title
     public function debug($adi_matrix_articles,$matrix_index)
     {
-        global $event,$step,$adi_matrix_cfs,$adi_matrix_list,$txp_user;
+        global $event,$step,$adi_matrix_cfs,$adi_matrix_list;
 
         echo "<b>Event:</b> ".$event.", <b>Step:</b> ".$step.br;
         echo "<b>Date/time:</b> "
@@ -1924,7 +1971,7 @@ END_SCRIPT
     // td (field specific): adi_matrix_field_id, adi_matrix_field_title, adi_matrix_field_custom_x etc etc
     public function matrix_table($adi_matrix_articles,$matrix_index,$page,$errors=array(),$updates=array())
     {
-        global $step,$adi_matrix_cfs,$adi_matrix_list,$txp_user,$txp_user;
+        global $step,$adi_matrix_cfs,$adi_matrix_list,$txp_user;
 
         $out = '';
         $out .= $this->table_head($matrix_index,'header');
@@ -2991,6 +3038,7 @@ END_SCRIPT
         global $adi_matrix_cfs;
 
         $res = FALSE;
+
         foreach ($_POST as $index => $value) {
             $data = doArray($value,'doStripTags'); // strip out monkey business
 
@@ -3176,9 +3224,9 @@ END_SCRIPT
     }
 
     // generate form fields for existing & new matrixes
-    public function admin_table($matrix_list,$matrix_cfs)
+    public function admin_table($matrix_list,$matrix_cfs, $selected='')
     {
-        global $adi_matrix_cfs,$txp_user,$prefs;
+        global $adi_matrix_cfs,$prefs;
 
         $sort_options = $this->get_sort_options();
         $sort_types = $this->get_sort_types();
@@ -3186,44 +3234,6 @@ END_SCRIPT
 
         $out = '';
         $out .= $this->admin_table_head($matrix_cfs);
-
-        // tack 'new' index onto end of $matrix_list (field defaults for adding new matrix)
-        $matrix_list['new'] = array(
-            'ordinal' => '',
-            'name' => '',
-            'sort' => 'posted',
-            'dir' => 'desc',
-            'sort_type' => 'alphabetical',
-            'user' => $txp_user,
-            'privs' => '',
-            'scroll' => '0',
-            'footer' => '0',
-            'title' => '0',
-            'publish' => '0',
-            'show_section' => '0',
-            'cf_links' => '',
-            'tab' => '0',
-            'criteria_section' => '',
-            'criteria_category' => '',
-            'criteria_descendent_cats' => '0',
-            'criteria_status' => '0',
-            'criteria_author' => '',
-            'criteria_keywords' => '',
-            'criteria_timestamp' => '',
-            'criteria_expiry' => '',
-            'criteria_condition' => '',
-            'status' => '0',
-            'keywords' => '0',
-            'article_image' => '0',
-            'category1' => '0',
-            'category2' => '0',
-            'posted' => '0',
-            'expires' => '0',
-            'section' => '0'
-        );
-
-        foreach ($adi_matrix_cfs as $index => $value) // add custom fields to $matrix_list['new']
-            $matrix_list['new']['custom_'.$index] = '0';
 
         // existing matrixes followed by empty fields for a new one
         foreach ($matrix_list as $matrix_index => $matrix) {
@@ -3367,8 +3377,9 @@ END_SCRIPT
                     )
                     .$cf_td
                     .tda($this->delete_button($matrix_list,$matrix_index),' class="adi_matrix_delete"')
-                );
+                , array('id' => 'matrix_id_'.$matrix_index));
         }
+
         return $out;
     }
 
@@ -3546,7 +3557,7 @@ END_SCRIPT
     // adi_matrix admin tab
     public function matrix_admin($event, $step)
     {
-        global $adi_matrix_cfs,$prefs,$txp_permissions;
+        global $adi_matrix_cfs,$prefs,$txp_permissions, $txp_user;
 
         $message = '';
         $installed = $this->installed();
@@ -3634,10 +3645,57 @@ END_SCRIPT
         pagetop(gTxt('adi_matrix_admin'),$message);
 
         $installed = $this->installed();
+
         if ($installed && !$upgrade_required) {
-            $adi_matrix_list = $this->read_settings();
+            $adi_matrix_list = $this->read_settings(false);
+
+            // tack 'new' index onto end of $matrix_list (field defaults for adding new matrix)
+            $adi_matrix_list['new'] = array(
+                'name' => '',
+                'ordinal' => '',
+                'sort' => 'posted',
+                'dir' => 'desc',
+                'sort_type' => 'alphabetical',
+                'user' => $txp_user,
+                'privs' => '',
+                'scroll' => '0',
+                'footer' => '0',
+                'title' => '0',
+                'publish' => '0',
+                'show_section' => '0',
+                'cf_links' => '',
+                'tab' => '0',
+                'criteria_section' => '',
+                'criteria_category' => '',
+                'criteria_descendent_cats' => '0',
+                'criteria_status' => '0',
+                'criteria_author' => '',
+                'criteria_keywords' => '',
+                'criteria_timestamp' => '',
+                'criteria_expiry' => '',
+                'criteria_condition' => '',
+                'status' => '0',
+                'keywords' => '0',
+                'article_image' => '0',
+                'category1' => '0',
+                'category2' => '0',
+                'posted' => '0',
+                'expires' => '0',
+                'section' => '0'
+            );
+
+            foreach ($adi_matrix_cfs as $index => $value) {
+                // add custom fields to $matrix_list['new']
+                $adi_matrix_list['new']['custom_'.$index] = '0';
+            }
+
+            // @todo pref to control if it selects last edited, or always defaults to new?
+
+            $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
+            $matrix_select = selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id');
+
             // output table & input form
-            echo form(
+            echo $matrix_select . n . form(
                 startTable('list','','txp-list')
                 .$this->admin_table($adi_matrix_list,$adi_matrix_cfs)
                 .endTable()
