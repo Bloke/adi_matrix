@@ -338,6 +338,7 @@ class adi_matrix
 
             if ($register_this_tab) {
                 $tab = $matrix['tab'];
+
                 if ($tab == 'start') {
                     // switch on Home tab
                     add_privs('tab.start',$all_privs); // all privs
@@ -354,6 +355,7 @@ class adi_matrix
                 echo "TAB: register_this_tab=$register_this_tab".br.br;
             }
         }
+
         if ($this->debug) {
             echo '<b>$adi_matrix_privs:</b>';
             dmp($this->privs);
@@ -427,8 +429,7 @@ table#list td { padding:0.5em }
 .adi_matrix_error input { border-color:#b22222; color:#b22222 }
 .adi_matrix_matrix .adi_matrix_matrix_prefs { margin-top:4em; text-align:center }
 .adi_matrix_grand_total { text-align:center }
-.adi_matrix_edit_link a { display:inline-block; width:21px; height:21px; line-height:2; border:1px solid #ccc; border-radius:0.4em; background:url(theme/classic/view-text.png) 50% 50% no-repeat #FFF8DD }
-.adi_matrix_edit_link a:hover, .adi_matrix_edit_link a:active { text-decoration:none; background-color:#fff }
+.adi_matrix_edit_link span { display:inline-block; width:20px; height:20px; }
 /* matrix tabs 4.5 */
 .txp-list .adi_matrix_timestamp .time input { margin-top:0.5em }
 .txp-list .adi_matrix_timestamp { min-width:11em }
@@ -471,15 +472,11 @@ EOCSS;
 .txp-list tfoot td.desc a:after { content:"&#8595;"; border-left:.30769230769231em solid transparent; border-right:.30769230769231em solid transparent; border-top:0.30769em solid #333; border-bottom:0 }
 .txp-list tfoot td.asc a:after { content:"&#8593;"; border-left:.30769230769231em solid transparent; border-right:.30769230769231em solid transparent; border-top:0; border-bottom:0.30769em solid #333 }
 p.prev-next, form.pageby { text-align:center }
-.adi_matrix_edit_link a { border:1px solid #eee; border-radius:0.5em; background:url(theme/classic/view-text.png) 50% 50% no-repeat #eee }
-.adi_matrix_edit_link a:hover, .adi_matrix_edit_link a:active { background-color:#FFF6D3 }
 EOCSS;
 
         if ($this->is_txp460) {
             $rules .= <<<EOCSS
     /* TXP 4.6 only */
-    .adi_matrix_edit_link a { width:1.6em; height:1.8em; background-image:url(admin-themes/hive/assets/img/ui-icon-sprite-333333.svg); background-size:320px 340px; background-position: -78px -140px; background-repeat: no-repeat; background-color:transparent; border:0 }
-    .adi_matrix_edit_link a:hover, .adi_matrix_edit_link a:active { background-color:transparent }
     .adi_matrix_view_link span + span { display:none }
 EOCSS;
         }
@@ -2033,54 +2030,81 @@ END_SCRIPT
                     $id_link = eLink('article','edit','ID',$id,$id);
                     $out .= tag($id_link,'td',' class="adi_matrix_field_id"');
                 }
+
                 // title
                 $article_title = trim($data['title']);
-                if ($article_title == '') // blank title
+                if ($article_title == '') {
+                    // blank title
                     $title_link = tag(eLink('article','edit','ID',$id,gTxt('untitled'),'','',$title_text),'em');
-                else
+                } else {
                     $title_link = eLink('article','edit','ID',$id,$article_title,'','',$title_text);
+                }
+
                 $title_link = '<span title="'.$title_text.'"'.$class.'>'.$title_link.'</span>';
-                $arrow_link = sp.tag(eLink('article','edit','ID',$id,sp,'','',$title_text),'span',' class="adi_matrix_edit_link"'); // was &rarr;
-                if ($adi_matrix_list[$matrix_index]['title'] && $this->get_pref('adi_matrix_display_id')) // don't need arrow if got IDs
+                $arrow_link = sp.href(
+                    tag(sp, 'span', array('class' => 'ui ui-icon-pencil')),
+                    array(
+                        'event'      => 'article',
+                        'step'       => 'edit',
+                        'ID'         => $id,
+                        '_txp_token' => form_token(),
+                    ), array(
+                        'class' => 'adi_matrix_edit_link',
+                        'title' => $title_text,
+                    ));
+
+                if ($adi_matrix_list[$matrix_index]['title'] && $this->get_pref('adi_matrix_display_id')) {
                     $arrow_link = '';
+                }
+
                 if ($adi_matrix_list[$matrix_index]['title']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda(finput("text",$prefix."[title]",$data['title'],'',($this->get_pref('adi_matrix_input_field_tooltips') ?htmlspecialchars($data['title']):'')).$arrow_link,' class="adi_matrix_field_title"') :
                         $out .= tda($title_link,' class="adi_matrix_field_title"');
-                }
-                else
+                } else
                     $out .= tag($title_link,'td',' class="adi_matrix_field_title"');
                 // section
-                if ($adi_matrix_list[$matrix_index]['show_section'])
+                if ($adi_matrix_list[$matrix_index]['show_section']) {
                     $out .= tda($data['section']);
+                }
                 if ($adi_matrix_list[$matrix_index]['section']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda($this->section_popup($prefix."[section]",$data['section'],$adi_matrix_list[$matrix_index]['criteria_section']),' class="adi_matrix_field_section"') :
                         $out .= ($data['section'] ? tda($data['section'],' class="adi_matrix_field_section"') : tda(sp,' class="adi_matrix_field_section"'));
                 }
                 // status
-                if ($adi_matrix_list[$matrix_index]['status'])
+                if ($adi_matrix_list[$matrix_index]['status']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda(selectInput($prefix.'[status]',$statuses,$data['status']),' class="adi_matrix_field_status"') :
                         $out .= tda($statuses[$data['status']],' class="adi_matrix_field_status"');
+                }
                 // custom fields
                 foreach ($adi_matrix_cfs as $index => $cf_name) {
                     $custom_x = 'custom_'.$index;
-                    if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) // check that custom field is known to adi_matrix
-                        if ($adi_matrix_list[$matrix_index][$custom_x])
-                            if ($has_privs) // decide if user gets input fields or not
+                    if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) {
+                        // check that custom field is known to adi_matrix
+                        if ($adi_matrix_list[$matrix_index][$custom_x]) {
+                            if ($has_privs) {
+                                // decide if user gets input fields or not
                                 if ($this->has_glz_cf) {
                                     $glz_input_stuff = $this->glz_cfs_input($custom_x,$prefix."[$custom_x]",$data[$custom_x],$id);
-                                    if ($glz_input_stuff[1] == 'glz_custom_radio_field') // don't apply glz_class coz can't handle glz reset function properly yet - see below
+
+                                    if ($glz_input_stuff[1] == 'glz_custom_radio_field') {
+                                        // don't apply glz_class coz can't handle glz reset function properly yet - see below
                                         $out .= tda($glz_input_stuff[0],' class="adi_matrix_field_'.$custom_x.'"');
-                                    else
+                                    } else {
                                         $out .= tda($glz_input_stuff[0],' class="'.$glz_input_stuff[1].' adi_matrix_field_'.$custom_x.'"');
-                                }
-                                else
+                                    }
+                                } else {
                                     $out .= tda(finput("text",$prefix."[$custom_x]",$data[$custom_x],'',($this->get_pref('adi_matrix_input_field_tooltips')?htmlspecialchars($data[$custom_x]):'')),' class="adi_matrix_field_'.$custom_x.'"');
-                            else
+                                }
+                            } else {
                                 $out .= ($data[$custom_x] ? tda($data[$custom_x],' class="adi_matrix_field_'.$custom_x.'"') : tda(sp,' class="adi_matrix_field_'.$custom_x.'"')); // make sure the table cell stretches if no data
+                            }
+                        }
+                    }
                 }
+
                 // article image
                 if ($adi_matrix_list[$matrix_index]['article_image']) {
                     $arrow_link = '';
@@ -2098,41 +2122,55 @@ END_SCRIPT
                         $out .= ($data['article_image'] ? tda($data['article_image'].$arrow_link,' class="adi_matrix_field_image"') : tda(sp,' class="adi_matrix_field_image"')); // make sure the table cell stretches if no data
                 }
                 // keywords
-                if ($adi_matrix_list[$matrix_index]['keywords'])
+                if ($adi_matrix_list[$matrix_index]['keywords']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda('<textarea name="'.$prefix."[keywords]".'" cols="18" rows="5" class="mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $data['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"') :
                         $out .= ($data['keywords'] ? tda($data['keywords'],' class="adi_matrix_field_keywords"') : tda(sp,' class="adi_matrix_field_keywords"'));
+                }
                 // category1
-                if ($adi_matrix_list[$matrix_index]['category1'])
+                if ($adi_matrix_list[$matrix_index]['category1']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda($this->category_popup($prefix."[category1]",$data['category1'],false),' class="adi_matrix_category adi_matrix_field_category1"') :
                         $out .= ($data['category1'] ? tda($data['category1'],' class="adi_matrix_field_category1"') : tda(sp,' class="adi_matrix_category adi_matrix_field_category1"'));
+                }
                 // category2
-                if ($adi_matrix_list[$matrix_index]['category2'])
+                if ($adi_matrix_list[$matrix_index]['category2']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda($this->category_popup($prefix."[category2]",$data['category2'],false),' class="adi_matrix_category adi_matrix_field_category2"') :
                         $out .= ($data['category2'] ? tda($data['category2'],' class="adi_matrix_field_category2"') : tda(sp,' class="adi_matrix_category adi_matrix_field_category2"'));
+                }
+
                 // posted
                 $class = 'adi_matrix_timestamp adi_matrix_field_posted';
-                if (array_search('posted',$article_errors) !== false)
+
+                if (array_search('posted',$article_errors) !== false) {
                     $class .= ' adi_matrix_error';
-                if ($adi_matrix_list[$matrix_index]['posted'])
+                }
+
+                if ($adi_matrix_list[$matrix_index]['posted']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda($this->timestamp_input($prefix."[posted]",$data['posted'],$data['uposted'],'posted'),' class="'.$class.'"') :
                         $out .= ($data['posted'] ? tda($data['posted']) : tda(sp));
+                }
+
                 // expires
                 $class = 'adi_matrix_timestamp adi_matrix_field_expires';
-                if (array_search('expires',$article_errors) !== false)
+                if (array_search('expires',$article_errors) !== false) {
                     $class .= ' adi_matrix_error';
-                if ($adi_matrix_list[$matrix_index]['expires'])
+                }
+
+                if ($adi_matrix_list[$matrix_index]['expires']) {
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda($this->timestamp_input($prefix."[expires]",$data['expires'],$data['uexpires'],'expires'),' class="'.$class.'"') :
                         $out .= ($data['expires'] ? tda($data['expires']) : tda(sp));
+                }
+
                 // delete button
-                if ($adi_matrix_list[$matrix_index]['publish']) { // got publish? - might delete!
-                     // a closer look at credentials - override delete priv OR (delete own priv and it's yours to delete)
+                if ($adi_matrix_list[$matrix_index]['publish']) {
+                    // got publish? - might delete!
+                    // a closer look at credentials - override delete priv OR (delete own priv and it's yours to delete)
                     if (has_privs('article.delete') || (has_privs('article.delete.own') && ($AuthorID == $txp_user))) {
-                        if ($this->is_txp460)
+                        if ($this->is_txp460) {
                             $button =
                                 href(
                                     span('Delete',' class="ui-icon ui-icon-close"')
@@ -2149,7 +2187,7 @@ END_SCRIPT
                                         'data-verify' => gTxt('confirm_delete_popup'),
                                     )
                                 );
-                        else {
+                        } else {
                             $url = '?event='.'adi_matrix_matrix_'.$matrix_index.a.'step=delete'.a.'id='.$id.a.'page='.$page;
                             $button =
                                     '<a href="'
@@ -2160,17 +2198,20 @@ END_SCRIPT
                                     .gTxt('confirm_delete_popup')
                                     .'\')">&#215;</a>';
                         }
+
                         $out .= tda($button,' class="adi_matrix_delete"');
-                    }
-                    else
+                    } else {
                         $out .= tda(sp);
+                    }
                 }
+
                 $out .= '</tr>';
             }
         }
 
-        if ($adi_matrix_list[$matrix_index]['publish'] && has_privs('article'))
+        if ($adi_matrix_list[$matrix_index]['publish'] && has_privs('article')) {
             $out .= $this->new_article($matrix_index);
+        }
 
         $out .= '</tbody>';
 
