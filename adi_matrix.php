@@ -194,7 +194,9 @@ class adi_matrix
         global $event, $step, $prefs, $txp_groups, $txp_user, $txp_permissions, $adi_matrix_cfs, $adi_matrix_list, $adi_matrix_validation_errors;
 
         // using article_validate & new default section pref (4.5.0), so decamp sharpish if need be
-        if (!version_compare(txp_version,'4.5.0','>=')) return;
+        if (!version_compare(txp_version,'4.5.0','>=')) {
+            return;
+        }
 
         $this->is_txp460 = (version_compare(txp_version,'4.6-dev','>='));
         $this->is_txp470 = (version_compare(txp_version,'4.7-dev','>='));
@@ -231,7 +233,10 @@ class adi_matrix
 
             if ($this->has_glz_cf) {
                 echo "version = $glz_cfs_version";
-                if ($this->is_cfs_v20) echo " (v2.0)";
+
+                if ($this->is_cfs_v20) {
+                    echo " (v2.0)";
+                }
             } else {
                 echo "not installed";
             }
@@ -275,7 +280,8 @@ class adi_matrix
         // @todo: improve this, because it shows empty on Plugin->Options pane
         $this->plugin_status = fetch('status','txp_plugin','name','adi_matrix',$this->debug);
 
-        if ($this->plugin_status) { // proper install - options under Plugins tab
+        if ($this->plugin_status) {
+            // proper install - options under Plugins tab
             add_privs('plugin_prefs.adi_matrix'); // add priv set - defaults to priv '1' only
             register_callback(array($this, 'options'),'plugin_prefs.adi_matrix');
         } else {
@@ -360,9 +366,12 @@ class adi_matrix
             echo '<b>$adi_matrix_privs:</b>';
             dmp($this->privs);
             echo '<b>adi_matrix added priv sets ($txp_permissions):</b>'.br;
-            foreach ($txp_permissions as $index => $value)
-                if (strpos($index,'adi_matrix') === 0)
+
+            foreach ($txp_permissions as $index => $value) {
+                if (strpos($index,'adi_matrix') === 0) {
                     echo $index.' = '.$value.br;
+                }
+            }
         }
 
         // style
@@ -459,7 +468,7 @@ table#list tfoot td.asc a { width:auto; background-color:transparent; background
 table#list tfoot td.asc a { background-position: right 2px }
 EOCSS;
 
-        if ($prefs['theme_name'] == 'hive')
+        if ($prefs['theme_name'] == 'hive') {
             $rules .= <<<EOCSS
 /* Hive theme (mostly stolen from Hive textpattern.css) */
 .txp-list tfoot td.desc a, table#list tfoot td.asc a { background-image:none }
@@ -473,6 +482,7 @@ EOCSS;
 .txp-list tfoot td.asc a:after { content:"&#8593;"; border-left:.30769230769231em solid transparent; border-right:.30769230769231em solid transparent; border-top:0; border-bottom:0.30769em solid #333 }
 p.prev-next, form.pageby { text-align:center }
 EOCSS;
+        }
 
         if ($this->is_txp460) {
             $rules .= <<<EOCSS
@@ -566,9 +576,14 @@ END_SCRIPT
                 $matrix_list[$id]['name'] = $name;
                 $matrix_list[$id]['user'] = $user;
                 $matrix_list[$id]['privs'] = $privs;
-                if (!isset($tab)) // tab introduced in v2.0, so may not be present during upgrade install
+
+                if (!isset($tab)) {
+                    // tab introduced in v2.0, so may not be present during upgrade install
                     $tab = 'content';
+                }
+
                 $matrix_list[$id]['tab'] = $tab;
+
                 // load in the rest
                 if (!$just_the_basics) {
                     $the_rest = array('sort','dir','sort_type','scroll','footer','title','publish','show_section','cf_links','criteria_section','criteria_category','criteria_descendent_cats','criteria_status','criteria_author','criteria_keywords','criteria_timestamp','criteria_expiry','criteria_condition','status','keywords','article_image','category1','category2','posted','expires','section');
@@ -684,15 +699,6 @@ END_SCRIPT
         }
 
         $custom = ''; // MAY GET CONFUSING WITH criteria_condition
-    //  if ($customFields) {
-    //      foreach($customFields as $cField) {
-    //          if (isset($atts[$cField]))
-    //              $customPairs[$cField] = $atts[$cField];
-    //      }
-    //      if(!empty($customPairs)) {
-    //          $custom = buildCustomSql($customFields,$customPairs);
-    //      }
-    //  }
 
         if ($keywords) {
             $keys = doSlash(do_list($keywords));
@@ -808,7 +814,8 @@ END_SCRIPT
                 ,$this->debug
                 );
 
-        if ($rs) // populate $adi_matrix_articles array
+        if ($rs) {
+            // populate $adi_matrix_articles array
             while ($a = nextRow($rs)) {
                 extract($a);
                 $adi_matrix_articles[$ID] = array();
@@ -820,6 +827,7 @@ END_SCRIPT
                 $adi_matrix_articles[$ID]['article_image'] = $Image;
                 $adi_matrix_articles[$ID]['category1'] = $Category1;
                 $adi_matrix_articles[$ID]['category2'] = $Category2;
+
                 foreach ($adi_matrix_cfs as $index => $cf_name) {
                     $custom_x = 'custom_'.$index;
                     $adi_matrix_articles[$ID][$custom_x] = $$custom_x;
@@ -831,6 +839,7 @@ END_SCRIPT
                 $adi_matrix_articles[$ID]['display_posted'] = safe_strftime('%Y-%m-%d %X',$uPosted); // article date/time string (YY-MM-DD HH:MM:SS) displayed to user (TXP time)
                 $adi_matrix_articles[$ID]['uexpires'] = $uExpires; // unix timestamp format (in server timezone)
                 $adi_matrix_articles[$ID]['expires'] = $Expires; // article date/time string (YY-MM-DD HH:MM:SS) from database
+
                 if ($Expires == '0000-00-00 00:00:00') {
                     // keep it zeroed
                     $adi_matrix_articles[$ID]['display_expires'] = $Expires;
@@ -855,6 +864,7 @@ END_SCRIPT
 
                 $adi_matrix_articles[$ID]['highlight'] = $highlight;
             }
+        }
 
         return $adi_matrix_articles;
     }
@@ -874,6 +884,7 @@ END_SCRIPT
         $Image = isset($data['article_image']) ? $data['article_image'] : '';
         $Category1 = isset($data['category1']) ? $data['category1'] : '';
         $Category2 = isset($data['category2']) ? $data['category2'] : '';
+
         // posted
         if (isset($data['posted']['reset_time'])) {
             $publish_now = '1';
@@ -881,7 +892,8 @@ END_SCRIPT
             $publish_now = '';
         }
 
-        if (isset($data['posted'])) { // this is in TXP date/time
+        if (isset($data['posted'])) {
+            // this is in TXP date/time
             extract($data['posted']);
             $Posted = $year.'-'.$month.'-'.$day.' '.$hour.':'.$minute.':'.$second;
         } else {
@@ -1279,7 +1291,8 @@ END_SCRIPT
         }
 
         // expires
-        if (isset($data['expires'])) { // this is in TXP date/time
+        if (isset($data['expires'])) {
+            // this is in TXP date/time
             foreach ($data['expires'] as $index => $value) {
                 // convert expiry vars ($year -> $exp_year) to align with $vars in txp_article.php
                 $var = 'exp_'.$index;
@@ -1374,20 +1387,26 @@ END_SCRIPT
         $msg = '';
 
         // tweak status according to privs
-        if (!has_privs('article.publish') && $Status >= STATUS_LIVE)
+        if (!has_privs('article.publish') && $Status >= STATUS_LIVE) {
             $Status = STATUS_PENDING;
+        }
 
         // set url-title
-        if (empty($url_title))
+        if (empty($url_title)) {
             $url_title = stripSpace($Title_plain, 1);
+        }
 
         // custom fields
         $cfq = array();
+
         foreach($adi_matrix_cfs as $i => $cf_name) {
             $custom_x = "custom_{$i}";
-            if (isset($$custom_x))
+
+            if (isset($$custom_x)) {
                 $cfq[] = "custom_$i = '".$$custom_x."'";
+            }
         }
+
         $cfq = implode(', ',$cfq);
 
         $rs = compact($vars);
@@ -1453,15 +1472,19 @@ END_SCRIPT
         // is allowed?
         if (!has_privs('article.delete')) {
             $allowed = array();
-            if (has_privs('article.delete.own'))
+
+            if (has_privs('article.delete.own')) {
                 $allowed = safe_column_num('ID', 'textpattern', 'ID in('.implode(',',$selected).') and AuthorID=\''.doSlash($txp_user).'\'',$this->debug);
+            }
+
             $selected = $allowed;
         }
 
         // in the bin
         foreach ($selected as $id) {
-            if (safe_delete('textpattern', "ID = $id",$this->debug))
+            if (safe_delete('textpattern', "ID = $id",$this->debug)) {
                 $ids[] = $id;
+            }
         }
 
         // housekeeping
@@ -1523,54 +1546,86 @@ END_SCRIPT
         $adi_matrix_post = array();
         foreach ($_POST as $index => $value) {
             $this_index = explode('_',$index);
-            if (strpos($index,'article_') === 0) { // pick out anything from $_POST that starts with "article_" ... i.e. article_xx or article_new
-                if ($this->has_glz_cf) // tweak POSTED values to convert from array to bar|separated|list - based on glz_custom_fields_before_save()
+            if (strpos($index,'article_') === 0) {
+                // pick out anything from $_POST that starts with "article_" ... i.e. article_xx or article_new
+                if ($this->has_glz_cf) {
+                    // tweak POSTED values to convert from array to bar|separated|list - based on glz_custom_fields_before_save()
                     foreach ($value as $key => $val) {
-                        if (strstr($key, 'custom_') && is_array($val)) { // check for custom fields with multiple values e.g. arrays
+                        if (strstr($key, 'custom_') && is_array($val)) {
+                            // check for custom fields with multiple values e.g. arrays
                             $val = implode($val,'|');
                             $value[$key] = $val;
                         }
                     }
+                }
+
                 $adi_matrix_post[$this_index[1]] = $value;
             }
         }
 
         // new article fiddling
         if (isset($adi_matrix_post['new'])) {
-            if (trim($adi_matrix_post['new']['title']) == '') // remove from the equation if title is blank
+            if (trim($adi_matrix_post['new']['title']) == '') {
+                // remove from the equation if title is blank
                 unset($adi_matrix_post['new']);
+            }
         }
 
         // check for missing glz custom field values & fire blanks if necessary - required for checkboxes/multiselects that have been completely unchecked (otherwise updates not registered)
         // will also pick up radios & multiselects (though deselected multiselect may be present in $_POST anyway)
         if ($this->has_glz_cf) {
-            if ($this->debug) echo '<b>glz_cfs blanks generated for:</b>'.br;
-            foreach ($adi_matrix_articles as $id => $article_data) { // check all articles (& new) on page (article may be absent from POST if checkbox is the only data field & it's completely unticked)
-                if ($this->debug) echo "Article $id - ";
-                if (!array_key_exists($id,$adi_matrix_post)) { // article missing from POST completely
-                    if ($this->debug) echo "(article absent) ";
+            if ($this->debug) {
+                echo '<b>glz_cfs blanks generated for:</b>'.br;
+            }
+
+            foreach ($adi_matrix_articles as $id => $article_data) {
+                // check all articles (& new) on page (article may be absent from POST if checkbox is the only data field & it's completely unticked)
+                if ($this->debug) {
+                    echo "Article $id - ";
+                }
+
+                if (!array_key_exists($id,$adi_matrix_post)) {
+                    // article missing from POST completely
+                    if ($this->debug) {
+                        echo "(article absent) ";
+                    }
+
                     $adi_matrix_post[$id] = array();
                 }
-                foreach ($adi_matrix_cfs as $index => $title) { // check each custom field
-                    if ($adi_matrix_list[$matrix_index]['custom_'.$index]) { // only interested in custom field if it's visible in this matrix
-                        if (!array_key_exists('custom_'.$index,$adi_matrix_post[$id])) { // custom field absent from article in POST
+
+                foreach ($adi_matrix_cfs as $index => $title) {
+                    // check each custom field
+                    if ($adi_matrix_list[$matrix_index]['custom_'.$index]) {
+                        // only interested in custom field if it's visible in this matrix
+                        if (!array_key_exists('custom_'.$index,$adi_matrix_post[$id])) {
+                            // custom field absent from article in POST
                             $adi_matrix_post[$id]['custom_'.$index] = ''; // fire a blank
-                            if ($this->debug) echo "custom_$index ";
+                            if ($this->debug) {
+                                echo "custom_$index ";
+                            }
                         }
                     }
                 }
-                if ($this->debug) echo br;
+
+                if ($this->debug) {
+                    echo br;
+                }
             }
-            if ($this->debug) echo br;
+
+            if ($this->debug) {
+                echo br;
+            }
         }
 
         // expires - change all blanks to all zeroes (existing & "new"), coz stored as zeroes but displayed as blanks
-        foreach ($adi_matrix_post as $id => $this_article) { // check each article
-            if (array_key_exists('expires',$this_article))
+        foreach ($adi_matrix_post as $id => $this_article) {
+            // check each article
+            if (array_key_exists('expires',$this_article)) {
                 if (($this_article['expires']['year'] == '') && ($this_article['expires']['month'] == '') && ($this_article['expires']['day'] == '') && ($this_article['expires']['hour'] == '') && ($this_article['expires']['minute'] == '') && ($this_article['expires']['second'] == '')) {
                     $adi_matrix_post[$id]['expires']['year'] = '0000';
                     $adi_matrix_post[$id]['expires']['month'] = $adi_matrix_post[$id]['expires']['day'] = $adi_matrix_post[$id]['expires']['hour'] = $adi_matrix_post[$id]['expires']['minute'] = $adi_matrix_post[$id]['expires']['second'] = '00';
                 }
+            }
         }
 
         if ($this->debug) {
@@ -1584,8 +1639,9 @@ END_SCRIPT
     // compare submitted article data with database data & create $adi_matrix_updates[id][field] if changed
     public function get_updates($adi_matrix_post,$adi_matrix_articles)
     {
-        if ($this->debug)
+        if ($this->debug) {
             echo '<b>Update processing (adi_matrix_get_updates):</b>'.br;
+        }
 
         $adi_matrix_updates = array();
 
@@ -1650,7 +1706,11 @@ END_SCRIPT
                     $equal = $equal && (strcmp($test_value,$old_value) == 0);
 
                     if ($this->debug) {
-                        if ($equal) echo " (EQUAL)".br; else echo " <b>(NOT EQUAL)</b>".br;
+                        if ($equal) {
+                            echo " (EQUAL)".br; 
+                        } else {
+                            echo " <b>(NOT EQUAL)</b>".br;
+                        }
                     }
 
                     if (!$equal) {
@@ -1713,8 +1773,10 @@ END_SCRIPT
                     }
 
                     if ($error) {
-                        if ($id != 'new')
+                        if ($id != 'new') {
                             $$field = $adi_matrix_articles[$id][$field]; // restore old value (so it doesn't influence later "expires before posted" checking)
+                        }
+
                         $new_error_list['0'][$id][] = $field;
                     }
                 }
@@ -1974,19 +2036,28 @@ END_SCRIPT
 
         $out = '';
         $out .= $this->table_head($matrix_index,'header');
-        if ($adi_matrix_list[$matrix_index]['footer'])
+
+        if ($adi_matrix_list[$matrix_index]['footer']) {
             $out .= $this->table_head($matrix_index,'footer');
+        }
+
         $out .= '<tbody>';
+
         if ($adi_matrix_articles) {
             $statuses = $this->get_statuses();
 
             foreach ($adi_matrix_articles as $id => $data) {
                 // set up validation error flags for this article
                 $article_errors = array();
-                foreach ($errors as $error_type)
-                    if (isset($error_type[$id]))
+
+                foreach ($errors as $error_type) {
+                    if (isset($error_type[$id])) {
                         $article_errors = array_merge($article_errors,$error_type[$id]);
+                    }
+                }
+
                 $article_errors = array_unique($article_errors);
+
                 if ($this->debug && ($step == 'update')) {
                     echo '<b>Validation errors #'.$id.':</b>';
                     dmp($article_errors);
@@ -2002,29 +2073,40 @@ END_SCRIPT
                 $prefix = 'article_'.$id; // use array index 'article_id' rather than 'id' in POST data (clearer/safer?)
                 $out .= '<tr class="adi_matrix_'.$prefix.'">';
                 $highlight = $data['highlight'];
+
                 // article title link tooltip text
                 // tooltip (&#10; = newline in non-Firefox tooltip)
                 if ($this->get_pref('adi_matrix_article_tooltips')) {
                     $title_text = '#'.$id.', '.gTxt('posted').' '.$data['display_posted'];
-                    if ($data['expires'] != '0000-00-00 00:00:00')
+
+                    if ($data['expires'] != '0000-00-00 00:00:00') {
                         $title_text .= ', '.gTxt('expires').' '.$data['display_expires'];
-                    if ($highlight == 1)
+                    }
+                    if ($highlight == 1) {
                         $title_text .= ' ('.gTxt('expired').')';
-                    if ($highlight == 2)
+                    }
+                    if ($highlight == 2) {
                         $title_text .= ' ('.gTxt('adi_matrix_time_future').')';
+                    }
+
                     $title_text .= ', '.$data['section'];
                     $title_text .= ', '.$AuthorID;
-                }
-                else
+                } else {
                     $title_text = gTxt('edit');
+                }
                 $class = '';
                 // highlighting for expired/future articles
                 if ($this->get_pref('adi_matrix_article_highlighting')) {
                     if ($highlight) {
-                        if ($highlight == 1) $class = ' class="adi_matrix_expired"';
-                        if ($highlight == 2) $class = ' class="adi_matrix_future"';
+                        if ($highlight == 1) {
+                            $class = ' class="adi_matrix_expired"';
+                        }
+                        if ($highlight == 2) {
+                            $class = ' class="adi_matrix_future"';
+                        }
                     }
                 }
+
                 // ID
                 if ($this->get_pref('adi_matrix_display_id')) {
                     $id_link = eLink('article','edit','ID',$id,$id);
@@ -2061,8 +2143,10 @@ END_SCRIPT
                     $has_privs ? // decide if user gets input fields or not
                         $out .= tda(finput("text",$prefix."[title]",$data['title'],'',($this->get_pref('adi_matrix_input_field_tooltips') ?htmlspecialchars($data['title']):'')).$arrow_link,' class="adi_matrix_field_title"') :
                         $out .= tda($title_link,' class="adi_matrix_field_title"');
-                } else
+                } else {
                     $out .= tag($title_link,'td',' class="adi_matrix_field_title"');
+                }
+
                 // section
                 if ($adi_matrix_list[$matrix_index]['show_section']) {
                     $out .= tda($data['section']);
@@ -2229,56 +2313,83 @@ END_SCRIPT
 
         $prefix = 'article_new';
         $out = '<tr class="adi_matrix_'.$prefix.'">';
+
         // ID placeholder
-        if ($this->get_pref('adi_matrix_display_id'))
+        if ($this->get_pref('adi_matrix_display_id')) {
             $out .= tag('&#43;','td',' class="adi_matrix_add adi_matrix_field_id"'); // plus
+        }
+
         // title
         $out .= tda(finput("text",$prefix."[title]",$defaults['title']),' class="adi_matrix_field_title"');
+
         // section
-        if ($adi_matrix_list[$matrix_index]['show_section'])
+        if ($adi_matrix_list[$matrix_index]['show_section']) {
             $out .= tda($defaults['section'],' class="adi_matrix_field_section"');
-        elseif ($adi_matrix_list[$matrix_index]['section'])
+        } elseif ($adi_matrix_list[$matrix_index]['section']) {
             $out .= tda($this->section_popup($prefix."[section]",$defaults['section'],$adi_matrix_list[$matrix_index]['criteria_section']),' class="adi_matrix_field_section"');
+        }
+
         // status
-        if ($adi_matrix_list[$matrix_index]['status'])
+        if ($adi_matrix_list[$matrix_index]['status']) {
             $out .= tda(selectInput($prefix.'[status]',$statuses,$defaults['status']),' class="adi_matrix_field_status"');
+        }
+
         // custom fields
         foreach ($adi_matrix_cfs as $index => $cf_name) {
             $custom_x = 'custom_'.$index;
-            if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) // check that custom field is known to adi_matrix
-                if ($adi_matrix_list[$matrix_index][$custom_x])
+
+            if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) {
+            // check that custom field is known to adi_matrix
+                if ($adi_matrix_list[$matrix_index][$custom_x]) {
                     if ($this->has_glz_cf) {
                         $glz_input_stuff = $this->glz_cfs_input($custom_x,$prefix."[$custom_x]",$defaults[$custom_x],0);
-                        if ($glz_input_stuff[1] == 'glz_custom_radio_field') // don't apply glz_class coz can't handle glz reset function properly yet - see below
+
+                        if ($glz_input_stuff[1] == 'glz_custom_radio_field') {
+                            // don't apply glz_class coz can't handle glz reset function properly yet - see below
                             $out .= tda($glz_input_stuff[0],' class="adi_matrix_field_'.$custom_x.'"');
-                        else
+                        } else {
                             $out .= tda($glz_input_stuff[0],' class="'.$glz_input_stuff[1].' adi_matrix_field_'.$custom_x.'"');
-                    }
-                    else
+                        }
+                    } else {
                         $out .= tda(finput("text",$prefix."[$custom_x]",$defaults[$custom_x],'',($this->get_pref('adi_matrix_input_field_tooltips')?htmlspecialchars($defaults[$custom_x]):'')),' class="adi_matrix_field_'.$custom_x.'"');
+                    }
+                }
+            }
         }
+
         // article image
-        if ($adi_matrix_list[$matrix_index]['article_image'])
+        if ($adi_matrix_list[$matrix_index]['article_image']) {
             $out .= tda(finput("text",$prefix."[article_image]",$defaults['title']),' class="adi_matrix_field_image"');
+        }
+
         // keywords
-        if ($adi_matrix_list[$matrix_index]['keywords'])
+        if ($adi_matrix_list[$matrix_index]['keywords']) {
             $out .= tda('<textarea name="'.$prefix."[keywords]".'" cols="18" rows="5" class="mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $defaults['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"');
+        }
+
         // category1
-        if ($adi_matrix_list[$matrix_index]['category1'])
+        if ($adi_matrix_list[$matrix_index]['category1']) {
             $out .= tda($this->category_popup($prefix."[category1]",$defaults['category1'],false),' class="adi_matrix_category adi_matrix_field_category1"');
+        }
+
         // category2
-        if ($adi_matrix_list[$matrix_index]['category2'])
+        if ($adi_matrix_list[$matrix_index]['category2']) {
             $out .= tda($this->category_popup($prefix."[category2]",$defaults['category2'],false),' class="adi_matrix_category adi_matrix_field_category2"');
+        }
+
         // posted
         if ($adi_matrix_list[$matrix_index]['posted'])
             $out .= tda($this->timestamp_input($prefix."[posted]",$defaults['posted'],$defaults['uposted'],'posted'),' class="adi_matrix_timestamp adi_matrix_field_posted"');
+
         // expires
-        if ($adi_matrix_list[$matrix_index]['expires'])
+        if ($adi_matrix_list[$matrix_index]['expires']) {
             $out .= tda($this->timestamp_input($prefix."[expires]",$defaults['expires'],$defaults['uexpires'],'expires'),' class="adi_matrix_timestamp adi_matrix_field_expires"');
+        }
 
         // Delete placeholder
-        if ($adi_matrix_list[$matrix_index]['publish'])
+        if ($adi_matrix_list[$matrix_index]['publish']) {
             $out .= tag(sp,'td',' class="adi_matrix_delete"');
+        }
 
         $out .= '</tr>';
 
@@ -2314,11 +2425,14 @@ END_SCRIPT
         $reset_sort = doStripTags(gps('reset_sort'));
         // sort it all out
         if ($new_sort || $new_dir || $new_sort_type || $reset_sort) {
-            if ($new_sort && $new_dir) // column heading clicked
+            if ($new_sort && $new_dir) {
+                // column heading clicked
                 $this->get_pref($event.'_sort',$new_sort.','.$new_dir.','.$sort_type,true); // update user pref with sort & dir
-            elseif ($new_sort_type) // sort_type change
+            } elseif ($new_sort_type) {
+                // sort_type change
                 $this->get_pref($event.'_sort',$sort.','.$dir.','.$new_sort_type,true); // update user pref with sort_type
-            elseif ($reset_sort) { // reset sort to default
+            } elseif ($reset_sort) {
+                // reset sort to default
                 safe_delete('txp_prefs',"name = '".$event."_sort'",$this->debug); // delete user pref
                 unset($prefs[$event.'_sort']);
             }
@@ -2349,16 +2463,22 @@ END_SCRIPT
         $sortq = $this->build_order_by($sort,$dir,$sort_type);
 
         // paging Mr. Matrix
-        if ($step == $event.'_change_pageby') { // change of page length
+        if ($step == $event.'_change_pageby') {
+            // change of page length
             $qty = gps('qty');
             $this->get_pref($event.'_pageby',$qty,true);
         }
+
         $page = gps('page'); // get page number
-        $pageby = get_pref($event.'_pageby',($this->is_txp470 ? 12 : 15)); // get current page size (paging default, if not saved as pref)
+
+        // get current page size (paging default, if not saved as pref)
+        $pageby = get_pref($event.'_pageby',($this->is_txp470 ? 12 : 15)); 
         $total = safe_count('textpattern',"$where");
         list($page,$offset,$num_pages) = pager($total,$pageby,$page);
-        if ($this->debug)
+
+        if ($this->debug) {
             echo "<b>Paging:</b> pageby=$pageby, total=$total, page=$page, offset=$offset, num_pages=$num_pages".br;
+        }
 
         // get a page of articles
         $adi_matrix_articles = $this->get_articles($matrix_index,$offset,$pageby,$where,$sortq);
@@ -2430,11 +2550,17 @@ END_SCRIPT
         $table = $this->matrix_table($adi_matrix_articles,$matrix_index,$page,$errors,$updates);
         $tags = array('<input', '<textarea', '<select'); // tags which indicate that a save button is deserved
         $save_button = false;
-        foreach ($tags as $tag)
+
+        foreach ($tags as $tag) {
             $save_button = $save_button || strpos($table,$tag);
+        }
+
         $class = 'adi_matrix_matrix';
-        if ($adi_matrix_list[$matrix_index]['scroll'])
+
+        if ($adi_matrix_list[$matrix_index]['scroll']) {
             $class .= ' adi_matrix_scroll';
+        }
+
         $class .= ' txp-list';
         echo form(
             tag($adi_matrix_list[$matrix_index]['name'],'h1')
@@ -2677,12 +2803,15 @@ END_SCRIPT
 
         if ($do_upgrade && $upgrade_required) {
             $res = true;
-            if ($v0_2)
+            if ($v0_2) {
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `article_image` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-            if ($v0_3t)
+            }
+            if ($v0_3t) {
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_timestamp` VARCHAR(16) NOT NULL DEFAULT 'any'",$this->debug);
-            if ($v0_3e)
+            }
+            if ($v0_3e) {
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_expiry` INT(2) NOT NULL DEFAULT '0'",$this->debug);
+            }
             if ($v1_0) {
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `scroll` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `category1` VARCHAR(128) NOT NULL DEFAULT ''",$this->debug);
@@ -3088,74 +3217,92 @@ END_SCRIPT
             $this_index = explode('_',$index);
             if ($this_index[0] == 'matrix') {
                 $matrix_index = $this_index[1];
+
                 // adjustments
-                if ($data['publish']) // if publish, then get title edit for free
+                if ($data['publish']) {
+                    // if publish, then get title edit for free
                     $data['title'] = '1';
-                if (isset($data['section'])) // if section selected as data, then switch off show_section
+                }
+
+                if (isset($data['section'])) {
+                    // if section selected as data, then switch off show_section
                     $data['show_section'] = '0';
+                }
+
                 // sort
                 if ($data['sort'] == '') {
                     $sortq = "sort='desc', ";
                 } else {
                     $sortq = "sort='".doSlash($data['sort'])."', ";
                 }
+
                 // section
                 if (array_key_exists('criteria_section',$data)) {
                     $criteria_sectionq = "criteria_section='".implode(',',$data['criteria_section'])."', ";
                 } else {
                     $criteria_sectionq = "criteria_section='', ";
                 }
+
                 // criteria status
                 if ($data['criteria_status'] == '') {
                     $data['criteria_status'] = '0'; // needs to be an integer for STRICTly (zero ignored in select field)
                 }
+
                 // status
                 if (array_key_exists('status',$data)) {
                     $statusq = 'status=1, ';
                 } else {
                     $statusq = 'status=0, ';
                 }
+
                 // keywords
                 if (array_key_exists('keywords',$data)) {
                     $keywordsq = 'keywords=1, ';
                 } else {
                     $keywordsq = 'keywords=0, ';
                 }
+
                 // article image
                 if (array_key_exists('article_image',$data)) {
                     $article_imageq = 'article_image=1, ';
                 } else {
                     $article_imageq = 'article_image=0, ';
                 }
+
                 // category
                 if (array_key_exists('category1',$data)) {
                     $categoryq = 'category1=1, ';
                 } else {
                     $categoryq = 'category1=0, ';
                 }
+
                 if (array_key_exists('category2',$data)) {
                     $categoryq .= 'category2=1, ';
                 } else {
                     $categoryq .= 'category2=0, ';
                 }
+
                 // posted
                 if (array_key_exists('posted',$data)) {
                     $postedq = 'posted=1, ';
                 } else {
                     $postedq = 'posted=0, ';
                 }
+
                 // expires
                 if (array_key_exists('expires',$data)) {
                     $expiresq = 'expires=1, ';
                 } else {
                     $expiresq = 'expires=0, ';
                 }
+
                 // title
                 if (array_key_exists('title',$data)) {
                     $titleq = 'title=1, ';
                 } else {
                     $titleq = 'title=0, ';
                 }
+
                 // section
                 if (array_key_exists('section',$data)) {
                     $sectionq = 'section=1, ';
@@ -3611,7 +3758,8 @@ END_SCRIPT
 
             if ($upgrade_required) {
                 $message = array(gTxt('adi_matrix_upgrade_required'),E_WARNING);
-            } else { // custom field musical chairs
+            } else {
+                // custom field musical chairs
                 $cfs_fiddled = false;
 
                 // add additional custom fields that may have suddenly appeared (glz_cfs: custom_11+)
@@ -3642,8 +3790,9 @@ END_SCRIPT
 
                 }
 
-                if ($cfs_fiddled)
+                if ($cfs_fiddled) {
                     $message = gTxt('adi_matrix_cfs_modified');
+                }
             }
         } else {
             $message = array(gTxt('adi_matrix_not_installed'),E_ERROR);
@@ -3842,6 +3991,7 @@ END_SCRIPT
             echo "<b>Event:</b> ".$event.", <b>Step:</b> ".$step.br.br;
             echo '<b>$_POST:</b>';
             dmp($_POST);
+
             if ($installed) {
                 $sort_options = $this->get_sort_options();
 
@@ -3856,8 +4006,10 @@ END_SCRIPT
                 echo '<b>$adi_matrix_cfs:</b>';
                 dmp($adi_matrix_cfs);
                 echo '<b>glz_custom_fields plugin:</b> is';
-                if (!$this->has_glz_cf)
+
+                if (!$this->has_glz_cf) {
                     echo ' NOT';
+                }
                 echo ' installed'.br;
             }
         }
@@ -3948,7 +4100,8 @@ END_SCRIPT
         } elseif ($step == 'downgrade') {
             $result = $this->downgrade();
             $result ? $message = gTxt('adi_matrix_downgraded') : $message = array(gTxt('adi_matrix_downgrade_fail'),E_ERROR);
-        } elseif ($step == 'tweak') { // for development updates
+        } elseif ($step == 'tweak') {
+            // for development updates
             $result = safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `cf_links` VARCHAR(255) NOT NULL DEFAULT ''",$this->debug);
             $result ? $message = 'Tweaked' : $message = array('Tweak failed',E_ERROR);
         } elseif ($step == 'install') {
@@ -3982,10 +4135,13 @@ END_SCRIPT
                 ,'div'
                 ,' style="margin-top:5em"');
 
-        if ($this->plugin_status) // proper plugin install, so lifecycle takes care of install/uninstall
+        if ($this->plugin_status) {
+            // proper plugin install, so lifecycle takes care of install/uninstall
             $install_button = $uninstall_button = '';
+        }
 
         $installed = $this->installed();
+
         if ($installed) {
             // options
             echo tag(
