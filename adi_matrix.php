@@ -117,6 +117,9 @@ adi_matrix_sort => Sort by
 adi_matrix_sort_direction => Sort direction
 adi_matrix_sort_type => Sort type
 adi_matrix_tab => Tab
+adi_matrix_time_any = Any time
+adi_matrix_time_future = Future
+adi_matrix_time_any = Past
 adi_matrix_tiny_mce => TinyMCE
 adi_matrix_tiny_mce_dir_path => TinyMCE directory path
 adi_matrix_tiny_mce_hak => TinyMCE (hak_tinymce)
@@ -2011,7 +2014,7 @@ END_SCRIPT
                     if ($highlight == 1)
                         $title_text .= ' ('.gTxt('expired').')';
                     if ($highlight == 2)
-                        $title_text .= ' ('.gTxt('time_future').')';
+                        $title_text .= ' ('.gTxt('adi_matrix_time_future').')';
                     $title_text .= ', '.$data['section'];
                     $title_text .= ', '.$AuthorID;
                 }
@@ -2846,9 +2849,9 @@ END_SCRIPT
     public function timestamp_popup($select_name, $value)
     {
         $opts = array(
-            'any' => gTxt('time_any'),
-            'past' => gTxt('time_past'),
-            'future' => gTxt('time_future'),
+            'any' => gTxt('adi_matrix_time_any'),
+            'past' => gTxt('adi_matrix_time_past'),
+            'future' => gTxt('adi_matrix_time_future'),
         );
 
         return selectInput($select_name, $opts, $value, FALSE);
