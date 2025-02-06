@@ -496,11 +496,10 @@ EOCSS;
         echo script_js(<<<END_SCRIPT
 $(function() {
     var adi_matrix_last_edited = localStorage.getItem('adi_matrix_selected');
-console.log('lastone', adi_matrix_last_edited);
+
     if ($("#matrix_id option[value='"+adi_matrix_last_edited+"']").length == 0) {
         adi_matrix_last_edited = 'new';
         localStorage.setItem('adi_matrix_selected', 'new');
-console.log('resetting new');
     }
 
     $('#matrix_id').val(adi_matrix_last_edited);
