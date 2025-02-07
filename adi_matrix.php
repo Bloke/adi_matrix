@@ -17,9 +17,9 @@ $plugin['name'] = 'adi_matrix';
 # $plugin['allow_html_help'] = 1;
 
 $plugin['version'] = '3.0.0';
-$plugin['author'] = 'Adi Gilbert';
-$plugin['author_uri'] = 'http://www.greatoceanmedia.com.au/';
-$plugin['description'] = 'Multi-article update tabs';
+$plugin['author'] = 'Adi Gilbert / Stef Dawson';
+$plugin['author_uri'] = 'https://www.stefdawson.com/';
+$plugin['description'] = 'Multi-article update panels';
 
 // Plugin load order:
 // The default value of 5 would fit most plugins, while for instance comment
@@ -4244,7 +4244,7 @@ To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No artic
 
 h2(adi_extras). *Additional information*
 
-p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_matrix.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.
+p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972.
 
 # --- END PLUGIN HELP ---
 -->

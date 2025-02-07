@@ -80,14 +80,6 @@ Note that only articles where you have actually changed anything will be updated
 
 *adi_matrix* respects all the standard restrictions on who can make changes to articles - based on authorship & privilege level.
 
-h2. *Textpack*
-
-To install the Textpack, go to the plugin's options page and click on "Install textpack".  This will copy & install it from a remote server. The number of language strings installed for your language will be displayed.
-
-If the Textpack installation fails (possibly due to an error accessing the remote site), the alternative is to click the "Textpack also available online":http://www.greatoceanmedia.com.au/textpack link.  This will take you to a website where the Textpack can be manually copied & pasted into the TXP Admin - Language tab.
-
-Updates and corrections to the Textpack are welcome - please use the "Textpack feedback":http://www.greatoceanmedia.com.au/textpack/?plugin=adi_matrix form.
-
 h2. *glz_custom_fields*
 
 *adi_matrix* will automatically detect if *glz_custom_fields* is installed and should play nicely.
@@ -102,4 +94,4 @@ To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No artic
 
 h2(adi_extras). *Additional information*
 
-p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972. A copy of this help is also available "online":http://www.greatoceanmedia.com.au/txp/?plugin=adi_matrix.  More adi_plugins can be found "here":http://www.greatoceanmedia.com.au/txp/.
+p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972.
