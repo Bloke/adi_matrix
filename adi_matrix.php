@@ -397,7 +397,6 @@ class adi_matrix
         $rules = <<<EOCSS
 /* admin tab */
 .adi_matrix_admin input.radio { margin-left:0.5em }
-.adi_matrix_admin table#list td { padding:0.5em 0.5em 0 }
 .adi_matrix_field label { display:block; float:left; width:8em }
 .adi_matrix_field label.adi_matrix_label2 { width:auto }
 .adi_matrix_field p { overflow:hidden; margin-top:0; min-height:1.4em }
@@ -411,11 +410,14 @@ class adi_matrix
 .adi_matrix_multi_checkboxes label { float:none; width:auto }
 .adi_matrix_prefs { margin-top:5em; text-align:center }
 .adi_matrix_prefs input.checkbox { margin-left:0.5em }
+.adi_matrix_admin_delete { position: absolute; right: 0.5em }
+.adi_matrix_row, .adi_matrix_data_block { display: flex; grid-gap:1em; }
+.adi_matrix_row { position: relative; flex-direction: column; border:1px solid #ccc; padding:0.5em; }
+@media (min-width:47.05em) {
+   .adi_matrix_row, .adi_matrix_data_block { flex-direction: row; justify-content:space-between; }
+}
 /* matrix tabs */
 .adi_matrix_matrix table#list th.adi_matrix_noborder { border:0 }
-.adi_matrix_matrix table#list .adi_matrix_delete { font-weight:normal; text-align:center }
-.adi_matrix_matrix table#list .adi_matrix_delete a { font-size:120% }
-.adi_matrix_matrix table#list td.adi_matrix_add { font-size:120% }
 .adi_matrix_none { margin-top:2em; text-align:center }
 .adi_matrix_field_title { white-space:nowrap } /* stops edit link dropping below */
 .adi_matrix_timestamp { white-space:nowrap } /* stops date or time being split */
@@ -515,7 +517,7 @@ $(function() {
     // Handle hide/show of the matrices and store the selected one.
     $('#matrix_id').on('change', function(e) {
         let sel = this.value;
-        $('.adi_matrix_admin tr').hide();
+        $('.adi_matrix_admin .adi_matrix_row').hide();
         $('.adi_matrix_admin #matrix_id_'+sel).show();
         localStorage.setItem('adi_matrix_selected', sel);
     }).change();
@@ -3383,24 +3385,6 @@ END_SCRIPT
         return $res;
     }
 
-    // <table> header stuff
-    public function admin_table_head($adi_matrix_cfs)
-    {
-        // custom field headings
-        $data_span = 2; // [status/keywords] plus [custom fields]
-        return
-            tag(
-                tr(
-                    hcell(gTxt('adi_matrix'))
-                    .hcell() // spacer for view link
-                    .hcell(gTxt('adi_matrix_article_selection'))
-                    .hcell(gTxt('adi_matrix_article_data'),'',' colspan="'.$data_span.'"')
-                    .hcell('','',' class="adi_matrix_noborder"') // spacer for delete link
-                )
-                ,'thead'
-            );
-    }
-
     // generate form fields for existing & new matrixes
     public function admin_table($matrix_list,$matrix_cfs, $selected='')
     {
@@ -3411,7 +3395,6 @@ END_SCRIPT
         $sort_dirs = $this->get_sort_dirs();
 
         $out = '';
-        $out .= $this->admin_table_head($matrix_cfs);
 
         // existing matrixes followed by empty fields for a new one
         foreach ($matrix_list as $matrix_index => $matrix) {
@@ -3422,7 +3405,7 @@ END_SCRIPT
                 $cf_checkboxes .= graf(tag(checkbox("matrix_".$matrix_index."[$custom_x]",1,$matrix[$custom_x]).span(sp.$cf_name,'label'),'label',' class="adi_matrix_checkbox"'));
             }
 
-            $cf_td = tda($cf_checkboxes,' class="adi_matrix_field adi_matrix_custom_field"');
+            $cf_td = tag($cf_checkboxes, 'div', ' class="adi_matrix_field adi_matrix_custom_field"');
             $url = '?event=adi_matrix_matrix_'.$matrix_index;
 
             if ($matrix_index == 'new') {
@@ -3432,10 +3415,12 @@ END_SCRIPT
                     '<a href="?event=adi_matrix_matrix_'.$matrix_index.'" title="'.gTxt('view').'" class="adi_matrix_view_link">'.'<span class="ui-icon ui-icon-notice"></span><span>'.gTxt('view').'</span></a>';
             }
 
-            $out .= tr(
+            $out .= tag(
                     // matrix settings
-                    tda(
-                        graf(tag(gTxt('name'),'label').finput("text","matrix_".$matrix_index."[name]",$matrix['name']))
+                    tag($this->delete_button($matrix_list,$matrix_index),'div', array('class' => 'adi_matrix_admin_delete'))
+                    .tag(
+                        hed(gTxt('adi_matrix'). sp . $view_link, 3)
+                        .graf(tag(gTxt('name'),'label').finput("text","matrix_".$matrix_index."[name]",$matrix['name']))
                         .graf(tag(gTxt('adi_matrix_order'),'label').finput("text","matrix_".$matrix_index."[ordinal]",$matrix['ordinal']))
                         .graf(tag(gTxt('adi_matrix_sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$sort_options,$matrix['sort'],false))
                         .graf(tag(gTxt('adi_matrix_sort_direction'),'label').selectInput("matrix_".$matrix_index."[dir]",$sort_dirs,$matrix['dir'],false))
@@ -3523,12 +3508,12 @@ END_SCRIPT
                             )
                         )
                         .graf(tag(gTxt('adi_matrix_tab'),'label').$this->tab_popup("matrix_".$matrix_index."[tab]",$matrix['tab']))
-                        ,' class="adi_matrix_field"'
+                        ,'div', ' class="adi_matrix_field"'
                     )
-                    .tda($view_link)
                     // article selection
-                    .tda(
-                        gTxt('section').br
+                    .tag(
+                        hed(gTxt('adi_matrix_article_selection'), 3)
+                        .gTxt('section').br
                         .tag($this->section_checkboxes("matrix_".$matrix_index."[criteria_section]",$matrix['criteria_section']),'div',' class="adi_matrix_multi_checkboxes"')
                         .graf(tag(gTxt('category'),'label').$this->category_popup("matrix_".$matrix_index."[criteria_category]",$matrix['criteria_category']))
                         .graf(tag(checkbox("matrix_".$matrix_index."[criteria_descendent_cats]",1,$matrix['criteria_descendent_cats']).sp.gTxt('adi_matrix_include_descendent_cats'),'label',' class="adi_matrix_label2"'))
@@ -3538,24 +3523,28 @@ END_SCRIPT
                         .graf(tag(gTxt('timestamp'),'label').$this->timestamp_popup("matrix_".$matrix_index."[criteria_timestamp]",$matrix['criteria_timestamp']))
                         .graf(tag(gTxt('adi_matrix_expiry'),'label').$this->expiry_popup("matrix_".$matrix_index."[criteria_expiry]",$matrix['criteria_expiry']))
                         .graf(tag(gTxt('adi_matrix_custom_condition'),'label').finput("text","matrix_".$matrix_index."[criteria_condition]",$matrix['criteria_condition']))
-                        ,' class="adi_matrix_field"'
+                        ,'div', ' class="adi_matrix_field"'
                     )
                     // article data
-                    .tda(
-                        graf(tag(checkbox("matrix_".$matrix_index."[status]",1,$matrix['status']).span(sp.gTxt('status')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[keywords]",1,$matrix['keywords']).span(sp.gTxt('keywords')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[article_image]",1,$matrix['article_image']).span(sp.gTxt('article_image')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[category1]",1,$matrix['category1']).span(sp.gTxt('category1')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[category2]",1,$matrix['category2']).span(sp.gTxt('category2')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[posted]",1,$matrix['posted']).span(sp.gTxt('posted')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[expires]",1,$matrix['expires']).span(sp.gTxt('expires')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[title]",1,$matrix['title']).span(sp.gTxt('title')),'label',' class="adi_matrix_checkbox"'))
-                        .graf(tag(checkbox("matrix_".$matrix_index."[section]",1,$matrix['section']).span(sp.gTxt('section')),'label',' class="adi_matrix_checkbox"'))
-                        ,' class="adi_matrix_field"'
-                    )
-                    .$cf_td
-                    .tda($this->delete_button($matrix_list,$matrix_index),' class="adi_matrix_delete"')
-                , array('id' => 'matrix_id_'.$matrix_index));
+                    .tag(
+                        hed(gTxt('adi_matrix_article_data'), 3)
+                        .tag(
+                        tag(
+                            graf(tag(checkbox("matrix_".$matrix_index."[status]",1,$matrix['status']).span(sp.gTxt('status')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[keywords]",1,$matrix['keywords']).span(sp.gTxt('keywords')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[article_image]",1,$matrix['article_image']).span(sp.gTxt('article_image')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[category1]",1,$matrix['category1']).span(sp.gTxt('category1')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[category2]",1,$matrix['category2']).span(sp.gTxt('category2')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[posted]",1,$matrix['posted']).span(sp.gTxt('posted')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[expires]",1,$matrix['expires']).span(sp.gTxt('expires')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[title]",1,$matrix['title']).span(sp.gTxt('title')),'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox("matrix_".$matrix_index."[section]",1,$matrix['section']).span(sp.gTxt('section')),'label',' class="adi_matrix_checkbox"'))
+                            ,'div', ' class="adi_matrix_field"'
+                        )
+                        .$cf_td
+                        , 'div', array('class' => 'adi_matrix_data_block'))
+                    , 'div')
+                , 'div', array('id' => 'matrix_id_'.$matrix_index, 'class' => 'adi_matrix_row'));
         }
 
         return $out;
@@ -3883,9 +3872,7 @@ END_SCRIPT
                         ),
                         gTxt('save'))
                 .form(
-                    startTable('list','','txp-list')
-                    .$this->admin_table($adi_matrix_list,$adi_matrix_cfs)
-                    .endTable()
+                    $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
                     .eInput('adi_matrix_admin')
                     .sInput('update')
                     ,''
