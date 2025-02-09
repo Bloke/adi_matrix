@@ -399,12 +399,9 @@ class adi_matrix
 .adi_matrix_admin input.radio { margin-left:0.5em }
 .adi_matrix_field label { display:block; float:left; width:8em }
 .adi_matrix_field label.adi_matrix_label2 { width:auto }
-.adi_matrix_field p { overflow:hidden; margin-top:0; min-height:1.4em }
+.adi_matrix_field p { min-height:1.2em }
 .adi_matrix_field p > span { float:left; width:8em } /* pseudo label */
 .adi_matrix_field p > span + label, .adi_matrix_field p > span + label + label { width:auto } /* radio labels */
-.adi_matrix_field p label.adi_matrix_checkbox { width:auto }
-.adi_matrix_field p label.adi_matrix_checkbox input { float:left; }
-.adi_matrix_field p label.adi_matrix_checkbox span { display:block; float:left; width:8em }
 .adi_matrix_custom_field label { width:12em }
 .adi_matrix_multi_checkboxes { margin:0.3em 0 0.5em; height:5em; padding:0.2em; overflow:auto; border:1px solid #ccc }
 .adi_matrix_multi_checkboxes label { float:none; width:auto }
@@ -3360,7 +3357,7 @@ END_SCRIPT
     }
 
     // generate form fields for existing & new matrixes
-    public function admin_table($matrix_list,$matrix_cfs, $selected='')
+    public function admin_table($matrix_list, $matrix_cfs, $selected='')
     {
         global $adi_matrix_cfs,$prefs;
 
