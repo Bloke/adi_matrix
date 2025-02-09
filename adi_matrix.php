@@ -446,37 +446,11 @@ html[xmlns] td.glz_custom_date-picker_field.clearfix { display:table-cell!import
 .adi_matrix_scroll table#list td:first-child { position:absolute; width:13%; left:0; top:auto; padding-right:1em; border-bottom-width:0 }
 .adi_matrix_scroll table#list thead th:first-child { border-bottom-width:1px }
 .adi_matrix_scroll div.scroll_box { width:87%; margin-left:13%; padding-bottom:1em;overflow-x:scroll; overflow-y:visible; border:solid #eee; border-width:0 1px }
-.adi_matrix_scroll table#list tfoot td:first-child { border-top:1px solid #ddd }
-.adi_matrix_scroll table#list tfoot td { border-bottom:0 }
-.adi_matrix_scroll table#list tfoot td:first-child a { display:inline }
-/* footer */
-table#list tfoot td { font-weight:bold }
-table#list tfoot td.desc a,
-table#list tfoot td.asc a { width:auto; background-color:transparent; background-image:url("./txp_img/arrowupdn.gif"); background-repeat: no-repeat; background-attachment: scroll; background-position: right -18px; padding-right: 14px; margin-right: 0pt }
-table#list tfoot td.asc a { background-position: right 2px }    /* TXP 4.6 only */
-    .adi_matrix_view_link span + span { display:none }
 EOCSS;
 
         if ($prefs['theme_name'] == 'hive') {
             $rules .= <<<EOCSS
-/* Hive theme (mostly stolen from Hive textpattern.css) */
-.txp-list tfoot td.desc a, table#list tfoot td.asc a { background-image:none }
-.txp-list tfoot td { text-shadow:1px 1px 0 rgba(255, 255, 255, 0.4); background-color:#eee; background-image:linear-gradient(#eee, #ddd); border-top:1px solid #ddd; border-right:1px solid #d0d0d0; border-bottom:1px solid #c4c4c4 }
-.txp-list tfoot td:first-child { border-left:1px solid #ddd }
-.txp-list tfoot td a { position:relative; display:block; color:#333; margin-right:.5em }
-.txp-list tfoot td a:hover { color:#333; text-decoration:none }
-.txp-list tfoot td a:after { position:absolute; top:.53846153846154em; right:-0.76923em; z-index:10; width:0; height:0; display:inline-block; *display:inline; *zoom:1; vertical-align:top; opacity:.5; text-indent:110%; white-space:nowrap; overflow:hidden }
-.txp-list tfoot td a:hover:after { opacity:1 }
-.txp-list tfoot td.desc a:after { content:"&#8595;"; border-left:.30769230769231em solid transparent; border-right:.30769230769231em solid transparent; border-top:0.30769em solid #333; border-bottom:0 }
-.txp-list tfoot td.asc a:after { content:"&#8593;"; border-left:.30769230769231em solid transparent; border-right:.30769230769231em solid transparent; border-top:0; border-bottom:0.30769em solid #333 }
 p.prev-next, form.pageby { text-align:center }
-EOCSS;
-        }
-
-        if ($this->is_txp460) {
-            $rules .= <<<EOCSS
-/* TXP 4.6 only */
-.adi_matrix_view_link span + span { display:none }
 EOCSS;
         }
 
@@ -3412,7 +3386,7 @@ END_SCRIPT
                 $view_link = ' ';
             } else {
                 $view_link =
-                    '<a href="?event=adi_matrix_matrix_'.$matrix_index.'" title="'.gTxt('view').'" class="adi_matrix_view_link">'.'<span class="ui-icon ui-icon-notice"></span><span>'.gTxt('view').'</span></a>';
+                    '[<a href="?event=adi_matrix_matrix_'.$matrix_index.'" title="'.gTxt('view').'" class="adi_matrix_view_link"><span>'.gTxt('view').'</span></a>]';
             }
 
             $out .= tag(
