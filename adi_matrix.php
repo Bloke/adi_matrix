@@ -58,24 +58,36 @@ $plugin['textpack'] = <<<EOT
 #@language en, en-gb, en-us
 #@admin-side
 adi_article_matrix => Article Matrix
-#@adi_matrix_admin
-adi_matrix => Matrix
+adi_matrix_default_sort => Default sort
 adi_matrix_alphabetical => Alphabetical
+adi_matrix_numerical => Numerical
+adi_matrix_sort_type => Sort type
+#@prefs
+adi_matrix => Adi Matrix
+adi_matrix_article_highlighting => Article title highlighting
+adi_matrix_article_tooltips => Article title tooltips
+adi_matrix_display_id => Show article IDs
+adi_matrix_input_field_tooltips => Input field tooltips
+adi_matrix_jquery_ui => jQuery UI script file
+adi_matrix_jquery_ui_css => jQuery UI CSS file
+adi_matrix_tinymce => TinyMCE settings
+adi_matrix_tiny_mce => Use TinyMCE
+adi_matrix_tiny_mce_dir => TinyMCE directory path
+adi_matrix_tiny_mce_config => TinyMCE configuration
+#@adi_matrix_admin
+adi_matrix_heading => Matrix
 adi_matrix_any_category => Any category
 adi_matrix_any_child_category => Any child category
 adi_matrix_article_data => Article Display
-adi_matrix_article_highlighting => Article title highlighting
 adi_matrix_article_limit => Maximum number of articles
 adi_matrix_articles_not_modified => No articles modified
 adi_matrix_article_selection => Article Selection
-adi_matrix_article_tooltips => Article title tooltips
 adi_matrix_article_update_fail => Article update failed
 adi_matrix_articles_saved => Articles saved
 adi_matrix_blank_url_title => URL-only title blank
 adi_matrix_cancel => Cancel
 adi_matrix_custom_condition => Custom condition
 adi_matrix_cf_links => Custom field links
-adi_matrix_default_sort => Default sort
 adi_matrix_display_article_id => Display article ID#
 adi_matrix_duplicate_url_title => URL-only title already used
 adi_matrix_edit_preferences => Plugin preferences
@@ -87,15 +99,12 @@ adi_matrix_include_descendent_cats => Include descendent categories
 adi_matrix_install_fail => Unable to install
 adi_matrix_installed => Installed
 adi_matrix_invalid_timestamp => Invalid timestamp
-adi_matrix_jquery_ui => jQuery UI script file
-adi_matrix_jquery_ui_css => jQuery UI CSS file
 adi_matrix_logged_in_user => Logged in user
 adi_matrix_admin => Article Matrix Admin
 adi_matrix_total_articles => Total articles in matrix:
 adi_matrix_cfs_modified => Custom field list modified
 adi_matrix_delete_fail => Matrix delete failed
 adi_matrix_deleted => Matrix deleted
-adi_matrix_input_field_tooltips => Input field tooltips
 adi_matrix_validation_error => Validation errors
 adi_matrix_name => Matrix name
 adi_matrix_order => Matrix order
@@ -105,33 +114,23 @@ adi_matrix_new_article => New article
 adi_matrix_no_category => No category
 adi_matrix_no_expiry => No expiry
 adi_matrix_not_installed => Not installed
-adi_matrix_numerical => Numerical
 adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
-adi_matrix_pref_update_fail => Preference update failed
 adi_matrix_reset => Reset
 adi_matrix_scroll => Scroll
 adi_matrix_show_section => Show section
 adi_matrix_sort => Sort by
 adi_matrix_sort_direction => Sort direction
-adi_matrix_sort_type => Sort type
 adi_matrix_tab => Tab
 adi_matrix_time_any => Any time
 adi_matrix_time_future => Future
 adi_matrix_time_past => Past
-adi_matrix_tiny_mce => TinyMCE
-adi_matrix_tiny_mce_dir_path => TinyMCE directory path
-adi_matrix_tiny_mce_hak => TinyMCE (hak_tinymce)
-adi_matrix_tiny_mce_javascript' =>'TinyMCE (Javascript)
-adi_matrix_tiny_mce_jquery => TinyMCE (jQuery)
-adi_matrix_tiny_mce_config => TinyMCE configuration
 adi_matrix_two_categories => Two categories
 adi_matrix_uninstall => Uninstall
 adi_matrix_uninstall_fail => Unable to uninstall
 adi_matrix_uninstalled => Uninstalled
 adi_matrix_update_matrix => Update matrix settings
-adi_matrix_update_prefs => Update preferences
 adi_matrix_upgrade_fail => Unable to upgrade
 adi_matrix_upgrade_required => Upgrade required
 adi_matrix_upgraded => Upgraded
@@ -175,6 +174,7 @@ if (txpinterface === 'admin') {
 
 class adi_matrix
 {
+    protected $event = 'adi_matrix';
     protected $privs = array();
     protected $debug = 0; // general debuggy info
     protected $dump = 0; // dump of article data
@@ -213,7 +213,7 @@ class adi_matrix
         );
 
         // plugin lifecycle
-        register_callback(array($this, 'lifecycle'),'plugin_lifecycle.adi_matrix');
+        register_callback(array($this, 'lifecycle'),'plugin_lifecycle.' . $this->event);
 
         // adi_matrix admin tab
         add_privs('adi_matrix_admin'); // add priv group - defaults to priv '1' only
@@ -276,20 +276,11 @@ class adi_matrix
             3 => gTxt('adi_matrix_blank_url_title'),
         );
 
-        // plugin options
-        // @todo: improve this, because it shows empty on Plugin->Options pane
-        $this->plugin_status = fetch('status','txp_plugin','name','adi_matrix',$this->debug);
+        $this->plugin_status = fetch('status', 'txp_plugin', 'name', 'adi_matrix', $this->debug);
 
-        if ($this->plugin_status) {
-            // proper install - options under Plugins tab
-            add_privs('plugin_prefs.adi_matrix'); // add priv set - defaults to priv '1' only
-            register_callback(array($this, 'options'),'plugin_prefs.adi_matrix');
-        } else {
-            // txpdev - options under Extensions tab
-            add_privs('adi_matrix_options'); // add priv set - defaults to priv '1' only
-            register_tab('extensions','adi_matrix_options','adi_matrix options');
-            register_callback(array($this, 'options'),'adi_matrix_options');
-        }
+        add_privs('prefs.' . $this->event, '1,2');
+        add_privs('plugin_prefs.' . $this->event, '1, 2');
+        register_callback(array($this, 'options'),'plugin_prefs.' . $this->event);
 
         // glz_custom_fields stuff
         if ($this->has_glz_cf) {
@@ -308,8 +299,10 @@ class adi_matrix
                     register_callback(array($this, 'tiny_mce_style'),'admin_side','head_end');
                     register_callback(array($this, 'tiny_mce_'.$this->get_pref('adi_matrix_tiny_mce_type')),'admin_side','footer');
                 }
+
             }
         }
+                register_callback(array($this, 'inject_prefs_js'), 'prefs');
 
         // article matrix tabs
         $adi_matrix_list = array();
@@ -405,8 +398,6 @@ class adi_matrix
 .adi_matrix_custom_field label { width:12em }
 .adi_matrix_multi_checkboxes { margin:0.3em 0 0.5em; height:5em; padding:0.2em; overflow:auto; border:1px solid #ccc }
 .adi_matrix_multi_checkboxes label { float:none; width:auto }
-.adi_matrix_prefs { margin-top:5em; text-align:center }
-.adi_matrix_prefs input.checkbox { margin-left:0.5em }
 .adi_matrix_admin_delete { position: absolute; right: 0.5em }
 .adi_matrix_row, .adi_matrix_data_block { display: flex; grid-gap:1em; }
 .adi_matrix_row { position: relative; flex-direction: column; border:1px solid #ccc; padding:0.5em; }
@@ -421,8 +412,6 @@ class adi_matrix
 .adi_matrix_future a { font-weight:bold }
 .adi_matrix_expired a { font-style:italic }
 .adi_matrix_error input { border-color:#b22222; color:#b22222 }
-.adi_matrix_matrix .adi_matrix_matrix_prefs { margin-top:4em; text-align:center }
-.adi_matrix_grand_total { text-align:center }
 .adi_matrix_edit_link span { display:inline-block; width:20px; height:20px; }
 /* matrix tabs 4.5 */
 .txp-list .adi_matrix_timestamp .time input { margin-top:0.5em }
@@ -2569,7 +2558,7 @@ END_SCRIPT
                         ,''
                         ,'sort_type'
                         ,($sort_type == 'numerical' ? 'alphabetical' : 'numerical')
-                        ,gTxt(($sort_type == 'numerical' ? 'adi_alphabetical' : 'adi_numerical'))
+                        ,gTxt(($sort_type == 'numerical' ? 'adi_matrix_alphabetical' : 'adi_matrix_numerical'))
                         ,'','','' // to override TXP 4.5 default title "Edit"
                     )
                 )
@@ -2679,6 +2668,14 @@ END_SCRIPT
                 ,$this->debug
             );
 
+        // Install prefs.
+        $plugprefs = $this->get_prefs();
+
+        foreach ($plugprefs as $name => $opts) {
+            // $this->get_pref() sets the given pref if provided a value.
+            $this->get_pref($name, $opts['value']);
+        }
+
         return $res;
     }
 
@@ -2760,6 +2757,10 @@ END_SCRIPT
         $a = nextRow($rs);
         $v2_1 = empty($a);
         $upgrade_required = $upgrade_required || $v2_1;
+        // version 3.0
+        $ipmethod = safe_field('event', 'txp_prefs', "name = 'adi_matrix_article_highlighting'", $this->debug);
+        $v3_0 = $ipmethod === 'adi_matrix_admin';
+        $upgrade_required = $upgrade_required || $v3_0;
 
         if ($do_upgrade && $upgrade_required) {
             $res = true;
@@ -2824,6 +2825,14 @@ END_SCRIPT
             if ($v2_1) {
                 $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `ordinal` VARCHAR(32) DEFAULT 1 NULL AFTER `id`",$this->debug);
             }
+            if ($v3_0) {
+                $allprefs = $this->get_prefs();
+
+                foreach ($allprefs as $pref => $opts) {
+                    $res = $res && safe_update('txp_prefs', "event='adi_matrix', type='".(empty($opts['type']) ? PREF_PLUGIN : $opts['type']), "name='" . doSlash($pref) . "'");
+                }
+            }
+
             return $res;
         } else {
             // report back only
@@ -3390,7 +3399,7 @@ END_SCRIPT
                     // matrix settings
                     tag($this->delete_button($matrix_list,$matrix_index),'div', array('class' => 'adi_matrix_admin_delete'))
                     .tag(
-                        hed(gTxt('adi_matrix'). sp . $view_link, 3)
+                        hed(gTxt('adi_matrix_heading'). sp . $view_link, 3)
                         .graf(tag(gTxt('name'),'label').finput("text","matrix_".$matrix_index."[name]",$matrix['name']))
                         .graf(tag(gTxt('adi_matrix_order'),'label').finput("text","matrix_".$matrix_index."[ordinal]",$matrix['ordinal']))
                         .graf(tag(gTxt('adi_matrix_sort'),'label').selectInput("matrix_".$matrix_index."[sort]",$sort_options,$matrix['sort'],false))
@@ -3521,22 +3530,62 @@ END_SCRIPT
         return $out;
     }
 
+    /**
+     * Fetch the admin-side prefs panel link.
+     */
+    public function prefs_link()
+    {
+        return '?event=prefs#prefs_group_'.$this->event;
+    }
+
+    /**
+     * Jump to the prefs panel from the Plugin options link.
+     *
+     * @return HTML Page sub-content.
+     */
+    public function options()
+    {
+        $link = $this->prefs_link();
+
+        header('Location: ' . $link);
+    }
+
+    // Prefs handling javascript.
+    public function inject_prefs_js($evt, $stp)
+    {
+        $js = '';
+
+        if ($evt === 'prefs') {
+            $js = script_js(<<<EOS
+let block = $(".adi_matrix_tinymce");
+let grpOn = $("#adi_matrix_tiny_mce-1");
+let grpOff = $("#adi_matrix_tiny_mce-0");
+
+if (block.length) {
+    if (grpOff.prop("checked")) {
+        block.hide();
+    } else {
+        block.show();
+    }
+
+    grpOff.click(function () {
+        block.hide();
+    });
+
+    grpOn.click(function () {
+        block.show();
+    });
+}
+EOS
+            , false, true);
+        }
+
+        return $js;
+    }
+
     public function get_prefs()
     {
-        // default preferences
-        $plugin_prefs = array(
-            'adi_matrix_article_highlighting'   => array('value' => '1', 'input' => 'yesnoradio'),
-            'adi_matrix_article_tooltips'       => array('value' => '1', 'input' => 'yesnoradio'),
-            'adi_matrix_display_id'             => array('value' => '0', 'input' => 'yesnoradio'),
-            'adi_matrix_input_field_tooltips'   => array('value' => '0', 'input' => 'yesnoradio'),
-            'adi_matrix_jquery_ui'              => array('value' => '../scripts/jquery-ui.js', 'input' => 'text_input'),
-            'adi_matrix_jquery_ui_css'          => array('value' => '../scripts/jquery-ui.css', 'input' => 'text_input'),
-            'adi_matrix_tiny_mce'               => array('value' => '0', 'input' => 'yesnoradio'),
-            'adi_matrix_tiny_mce_type'          => array('value' => 'custom', 'input' => 'text_input'),
-            'adi_matrix_tiny_mce_dir'           => array('value' => '../scripts/tiny_mce', 'input' => 'text_input'),
-            'adi_matrix_tiny_mce_config'        => array('value' => 'see below', 'input' => 'text_area'),
-        );
-        $plugin_prefs['adi_matrix_tiny_mce_config']['value'] = '
+        $tiny_mce_config_val = <<<EOCFG
 language : "en",
 theme : "advanced",
 plugins : "safari,pagebreak,style,layer,table,save,advhr,advlink,emotions,iespell,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template",
@@ -3550,8 +3599,43 @@ theme_advanced_resizing : true,
 extended_valid_elements: "style[*]",
 width: "600",
 height: "400",
-';
-        return $plugin_prefs;
+EOCFG;
+
+        // default preferences
+        $plugprefs = array(
+            'adi_matrix_article_highlighting' => array(
+                'value' => '1', 'html' => 'yesnoradio', 'position' => 20,
+            ),
+            'adi_matrix_article_tooltips'     => array(
+                'value' => '1', 'html' => 'yesnoradio', 'position' => 30,
+            ),
+            'adi_matrix_display_id'           => array(
+                'value' => '0', 'html' => 'yesnoradio', 'position' => 10,
+            ),
+            'adi_matrix_input_field_tooltips' => array(
+                'value' => '0', 'html' => 'yesnoradio', 'position' => 40,
+            ),
+            'adi_matrix_jquery_ui'            => array(
+                'value' => '../scripts/jquery-ui.js', 'html' => 'text_input', 'position' => 110, 'collection' => 'adi_matrix_tinymce',
+            ),
+            'adi_matrix_jquery_ui_css'        => array(
+                'value' => '../scripts/jquery-ui.css', 'html' => 'text_input', 'position' => 120, 'collection' => 'adi_matrix_tinymce',
+            ),
+            'adi_matrix_tiny_mce'             => array(
+                'value' => '0', 'html' => 'yesnoradio', 'position' => 100,
+            ),
+            'adi_matrix_tiny_mce_type'        => array(
+                'value' => 'custom', 'html' => 'text_input', 'position' => 0, 'type' => PREF_HIDDEN,
+            ),
+            'adi_matrix_tiny_mce_dir'         => array(
+                'value' => '../scripts/tiny_mce', 'html' => 'text_input', 'position' => 130, 'collection' => 'adi_matrix_tinymce',
+            ),
+            'adi_matrix_tiny_mce_config'      => array(
+                'value' => $tiny_mce_config_val, 'html' => 'text_area', 'position' => 140, 'collection' => 'adi_matrix_tinymce',
+            ),
+        );
+
+        return $plugprefs;
     }
 
     // read or set pref
@@ -3571,14 +3655,16 @@ height: "400",
             }
         } else {
             // set pref
-            if (array_key_exists($name,$matrix_prefs)) {
-                $html = $matrix_prefs[$name]['input'];
+            if (array_key_exists($name, $matrix_prefs)) {
+                $html = $matrix_prefs[$name]['html'];
             } else {
                 $html = 'text_input';
             }
 
-            $res = set_pref($name,$value,'adi_matrix_admin',2,$html,0,$private);
-            $prefs[$name] = get_pref($name,$value,true); //??? JUST USE THIS LINE?
+            $evt = empty($matrix_prefs[$name]['collection']) ? 'adi_matrix' : array('adi_matrix', $matrix_prefs[$name]['collection']);
+            $type = empty($matrix_prefs[$name]['type']) ? PREF_PLUGIN : $matrix_prefs[$name]['type'];
+            $res = set_pref($name, $value, $evt, $type, $html, (empty($matrix_prefs[$name]['position']) ? 0 : $matrix_prefs[$name]['position']), $private);
+            $prefs[$name] = get_pref($name, $value, true); //??? JUST USE THIS LINE?
 
             return $res;
         }
@@ -3754,31 +3840,6 @@ END_SCRIPT
             $matrix_index = gps('matrix');
             $result = $this->delete($matrix_index);
             $result ? $message = gTxt('adi_matrix_deleted') : $message = array(gTxt('adi_matrix_delete_fail'),E_ERROR);
-        } elseif ($step == 'update_prefs') {
-            $result = true;
-
-            foreach ($matrix_prefs as $name => $data) {
-                if (array_key_exists($name,$_POST)) {
-                    $value = $_POST[$name];
-                } elseif ($data['input'] == 'yesnoradio') {
-                    $value = '0';
-                } else {
-                    $value = $data['value'];
-                }
-
-                // some values not allowed to be blank, reset to default
-                $non_blanks = array('adi_matrix_tiny_mce_dir','adi_matrix_jquery_ui','adi_matrix_jquery_ui_css');
-
-                foreach ($non_blanks as $non_blank) {
-                    if (($name == $non_blank) && (trim($value) == '')) {
-                        $value = $matrix_prefs[$non_blank]['value'];
-                    }
-                }
-
-                $result = $result && $this->get_pref($name,$value);
-            }
-
-            $result ? $message = gTxt('preferences_saved') : $message = array(gTxt('adi_matrix_pref_update_fail'),E_ERROR);
         }
 
         // generate page
@@ -3853,88 +3914,6 @@ END_SCRIPT
                     ,''
                     ,'adi_matrix_admin_form'
                 );
-            // preferences
-            echo form(
-                tag(
-                    tag(gTxt('adi_matrix_edit_preferences'),'h2')
-                    // display article id
-                    .graf(
-                        tag(
-                            checkbox2("adi_matrix_display_id",$this->get_pref('adi_matrix_display_id'))
-                            .sp
-                            .gTxt('adi_matrix_display_article_id')
-                        ,'label')
-                        .sp.sp
-                        .tag(
-                            checkbox2("adi_matrix_article_highlighting",$this->get_pref('adi_matrix_article_highlighting'))
-                            .sp
-                            .gTxt('adi_matrix_article_highlighting')
-                        ,'label')
-                    )
-                    // article tooltips
-                    .graf(
-                        tag(
-                            checkbox2("adi_matrix_article_tooltips",$this->get_pref('adi_matrix_article_tooltips'))
-                            .sp
-                            .gTxt('adi_matrix_article_tooltips')
-                        ,'label')
-                        .sp.sp
-                        .tag(
-                            checkbox2("adi_matrix_input_field_tooltips",$this->get_pref('adi_matrix_input_field_tooltips'))
-                            .sp
-                            .gTxt('adi_matrix_input_field_tooltips')
-                        ,'label')
-                    )
-                    .( $this->has_glz_cf ?
-                        // tinymce
-                        graf(
-                            gTxt('adi_matrix_tiny_mce')
-                            .sp
-                            .tag(
-                                radio("adi_matrix_tiny_mce",'0',($this->get_pref('adi_matrix_tiny_mce') == '0'))
-                                .sp
-                                .gTxt('no')
-                                ,'label'
-                            )
-                            .sp.sp
-                            .tag(
-                                radio("adi_matrix_tiny_mce",'1',($this->get_pref('adi_matrix_tiny_mce') == '1'))
-                                .sp
-                                .gTxt('yes')
-                                ,'label'
-                            )
-                        )
-                        .'<div id="peekaboo">'
-                        // tinymce dir
-                        .graf(
-                            tag(gTxt('adi_matrix_tiny_mce_dir_path'),'label')
-                            .finput("text",'adi_matrix_tiny_mce_dir',$this->get_pref('adi_matrix_tiny_mce_dir'),'','','',40)
-                        )
-                        // jquery ui
-                        .graf(
-                            tag(gTxt('adi_matrix_jquery_ui').':','label')
-                            .finput("text",'adi_matrix_jquery_ui',$this->get_pref('adi_matrix_jquery_ui'),'','','',40)
-                        )
-                        // jquery ui css
-                        .graf(
-                            tag(gTxt('adi_matrix_jquery_ui_css').':','label')
-                            .finput("text",'adi_matrix_jquery_ui_css',$this->get_pref('adi_matrix_jquery_ui_css'),'','','',40)
-                        )
-                        // tinymce config
-                        .graf(
-                            tag(gTxt('adi_matrix_tiny_mce_config').':','label')
-                        )
-                        .graf(
-                            text_area('adi_matrix_tiny_mce_config',300,600,$this->get_pref('adi_matrix_tiny_mce_config'))
-                        )
-                        .'</div>'
-                    : '')
-                    .fInput("submit", "do_something", gTxt('adi_matrix_update_prefs'), "smallerbox")
-                    .eInput("adi_matrix_admin").sInput("update_prefs")
-                    ,'div'
-                    ,' class="adi_matrix_prefs"'
-                )
-            );
         }
 
         if ($this->debug) {
@@ -4028,90 +4007,7 @@ END_SCRIPT
 
         return $dirs;
     }
-
-    // plugin options page
-    public function options($event,$step)
-    {
-        $message = '';
-
-        $installed = $this->installed();
-
-        if ($installed) {
-            $upgrade_required = $this->upgrade();
-
-            if ($upgrade_required) {
-                $step = 'upgrade';
-            }
-        }
-
-        if ($step == 'upgrade') {
-            $result = $this->upgrade(true);
-            $result ? $message = gTxt('adi_matrix_upgraded') : $message = array(gTxt('adi_matrix_upgrade_fail'),E_ERROR);
-        } elseif ($step == 'downgrade') {
-            $result = $this->downgrade();
-            $result ? $message = gTxt('adi_matrix_downgraded') : $message = array(gTxt('adi_matrix_downgrade_fail'),E_ERROR);
-        } elseif ($step == 'tweak') {
-            // for development updates
-            $result = safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `cf_links` VARCHAR(255) NOT NULL DEFAULT ''",$this->debug);
-            $result ? $message = 'Tweaked' : $message = array('Tweak failed',E_ERROR);
-        } elseif ($step == 'install') {
-            $result = $this->install();
-            $result ? $message = gTxt('adi_matrix_installed') : $message = array(gTxt('adi_matrix_install_fail'),E_ERROR);
-        } elseif ($step == 'uninstall') {
-            $result = $this->uninstall();
-            $result ? $message = gTxt('adi_matrix_uninstalled') : $message = array(gTxt('adi_matrix_uninstall_fail'),E_ERROR);
-        }
-
-        // generate page
-        pagetop('adi_matrix - '.gTxt('adi_matrix_edit_preferences'),$message);
-
-        $install_button =
-            tag(
-                form(
-                    fInput("submit", "do_something", gTxt('install'), "publish","",'return verify(\''.gTxt('are_you_sure').'\')')
-                    .eInput($event).sInput("install")
-                    ,'','','post','adi_matrix_nstall_button'
-                )
-                ,'div'
-                ,' style="text-align:center"'
-            );
-        $uninstall_button =
-            tag(
-                form(
-                    fInput("submit", "do_something", gTxt('adi_matrix_uninstall'), "publish","",'return verify(\''.gTxt('are_you_sure').'\')')
-                    .eInput($event).sInput("uninstall")
-                    ,'','','post','adi_matrix_nstall_button adi_matrix_uninstall_button'
-                )
-                ,'div'
-                ,' style="margin-top:5em"');
-
-        if ($this->plugin_status) {
-            // proper plugin install, so lifecycle takes care of install/uninstall
-            $install_button = $uninstall_button = '';
-        }
-
-        $installed = $this->installed();
-
-        if ($installed) {
-            // options
-            echo tag(
-                tag('adi_matrix '.gTxt('adi_matrix_edit_preferences'),'h2')
-                .$uninstall_button
-                ,'div'
-                ,' style="text-align:center"'
-            );
-        } else {
-            // install button
-            echo $install_button;
-        }
-
-        if ($this->debug) {
-            echo "<p><b>Event:</b> ".$event.", <b>Step:</b> ".$step."</p>";
-        }
-
-    }
 }
-
 
 # --- END PLUGIN CODE ---
 if (0) {
