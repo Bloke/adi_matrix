@@ -118,6 +118,7 @@ adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
 adi_matrix_reset => Reset
+adi_matrix_select => Select matrix
 adi_matrix_scroll => Scroll
 adi_matrix_show_section => Show section
 adi_matrix_sort => Sort by
@@ -279,7 +280,7 @@ class adi_matrix
         $this->plugin_status = fetch('status', 'txp_plugin', 'name', 'adi_matrix', $this->debug);
 
         add_privs('prefs.' . $this->event, '1,2');
-        add_privs('plugin_prefs.' . $this->event, '1, 2');
+        add_privs('plugin_prefs.' . $this->event, '1,2');
         register_callback(array($this, 'options'),'plugin_prefs.' . $this->event);
 
         // glz_custom_fields stuff
@@ -826,6 +827,7 @@ END_SCRIPT
         include_once txpath.'/include/txp_article.php'; // to get textile_main_fields()
 
         // set up variables in the style of $vars
+        $ID = '';
         $Title = $Title_plain = isset($data['title']) ? $data['title'] : '';
         $Status = isset($data['status']) ? $data['status'] : '';
         $Section = isset($data['section']) ? $data['section'] : '';
@@ -1979,9 +1981,9 @@ END_SCRIPT
     // tr (article ids):    adi_matrix_article_xx, adi_matrix_article_new
     // td (field type):     adi_matrix_timestamp, adi_matrix_category
     // td (field specific): adi_matrix_field_id, adi_matrix_field_title, adi_matrix_field_custom_x etc etc
-    public function matrix_table($adi_matrix_articles,$matrix_index,$page,$errors=array(),$updates=array())
+    public function matrix_table($adi_matrix_articles, $matrix_index, $page, $errors=array(), $updates=array())
     {
-        global $step,$adi_matrix_cfs,$adi_matrix_list,$txp_user;
+        global $step, $adi_matrix_cfs, $adi_matrix_list, $txp_user;
 
         $out = '';
         $out .= $this->table_head($matrix_index,'header');
@@ -2355,23 +2357,25 @@ END_SCRIPT
         $sort_dirs = $this->get_sort_dirs();
 
         // extract matrix index from event (e.g. adi_matrix_matrix_0 => 0)
-        $matrix_index = str_replace('adi_matrix_matrix_','',$event);
+        $matrix_index = str_replace('adi_matrix_matrix_', '', $event);
 
         // bomb out if upgrade needed
         $upgrade_required = $this->upgrade();
+
         if ($upgrade_required) {
-            pagetop($adi_matrix_list[$matrix_index]['name'],array(gTxt('adi_matrix_upgrade_required'),E_WARNING));
+            pagetop($adi_matrix_list[$matrix_index]['name'], array(gTxt('adi_matrix_upgrade_required'), E_WARNING));
             return;
         }
 
         // current sort settings (read from user pref, default to matrix settings)
-        list($sort,$dir,$sort_type) = explode(',',get_pref($event.'_sort',$adi_matrix_list[$matrix_index]['sort'].','.$adi_matrix_list[$matrix_index]['dir'].','.$adi_matrix_list[$matrix_index]['sort_type']));
+        list($sort, $dir, $sort_type) = explode(',', get_pref($event . '_sort', $adi_matrix_list[$matrix_index]['sort'] . ',' . $adi_matrix_list[$matrix_index]['dir'] . ',' . $adi_matrix_list[$matrix_index]['sort_type']));
 
         // user sort changes
         $new_sort = doStripTags(gps('sort'));
         $new_dir = doStripTags(gps('dir'));
         $new_sort_type = doStripTags(gps('sort_type'));
         $reset_sort = doStripTags(gps('reset_sort'));
+
         // sort it all out
         if ($new_sort || $new_dir || $new_sort_type || $reset_sort) {
             if ($new_sort && $new_dir) {
@@ -2385,6 +2389,7 @@ END_SCRIPT
                 safe_delete('txp_prefs',"name = '".$event."_sort'",$this->debug); // delete user pref
                 unset($prefs[$event.'_sort']);
             }
+
             // reread user pref, defaulting to matrix settings
             list($sort,$dir,$sort_type) = explode(',',get_pref($event.'_sort',$adi_matrix_list[$matrix_index]['sort'].','.$adi_matrix_list[$matrix_index]['dir'].','.$adi_matrix_list[$matrix_index]['sort_type']));
         }
@@ -2504,16 +2509,11 @@ END_SCRIPT
             $save_button = $save_button || strpos($table,$tag);
         }
 
-        $class = 'adi_matrix_matrix';
+        $class = 'adi_matrix_matrix txp-list';
 
-        if ($adi_matrix_list[$matrix_index]['scroll']) {
-            $class .= ' adi_matrix_scroll';
-        }
-
-        $class .= ' txp-list';
         echo form(
-            tag($adi_matrix_list[$matrix_index]['name'],'h1')
-            .'<div class="scroll_box">'
+            tag($adi_matrix_list[$matrix_index]['name'], 'h1')
+            .'<div class="txp-listtables" tabindex="0" aria-label="List">'
             .startTable('list','',$class)
             .$table
             .endTable()
@@ -2829,7 +2829,7 @@ END_SCRIPT
                 $allprefs = $this->get_prefs();
 
                 foreach ($allprefs as $pref => $opts) {
-                    $res = $res && safe_update('txp_prefs', "event='adi_matrix', type='".(empty($opts['type']) ? PREF_PLUGIN : $opts['type']), "name='" . doSlash($pref) . "'");
+                    $res = $res && safe_update('txp_prefs', "event='adi_matrix', type='".(empty($opts['type']) ? PREF_PLUGIN : doSlash($opts['type'])) ."'", "name='" . doSlash($pref) . "'");
                 }
             }
 
@@ -3893,7 +3893,11 @@ END_SCRIPT
             // @todo pref to control if it selects last edited, or always defaults to new?
 
             $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
-            $matrix_select = selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id');
+            $matrix_select = inputLabel(
+                'matrix_id',
+                selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id'),
+                'adi_matrix_select'
+            );
 
             // output table & input form
             echo $matrix_select . n .
