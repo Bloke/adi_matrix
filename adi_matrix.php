@@ -393,9 +393,7 @@ class adi_matrix
 .adi_matrix_field p { min-height:1.2em }
 .adi_matrix_field p > span { float:left; width:8em } /* pseudo label */
 .adi_matrix_custom_field label { width:12em }
-.adi_matrix_multi_checkboxes { margin:0.3em 0 0.5em; height:5em; padding:0.2em; overflow:auto; border:1px solid #ccc }
-.adi_matrix_multi_checkboxes label { float:none; width:auto }
-.adi_matrix_admin_delete { position: absolute; right: 0.5em; z-index:10 }
+.adi_matrix_admin_delete { position: absolute; right: 1.4em; z-index:10 }
 @media (min-width: 47em) {
   .adi_matrix_row {
     display: flex;
@@ -410,6 +408,22 @@ class adi_matrix
 .adi_matrix_row h3 {
   margin-block-start: 0;
 }
+.adi_matrix_multi_checkboxes {
+  height: 8em;
+  padding: .2em;
+  overflow: auto;
+  border: 1px solid var(--txp-border-light, hsl(0 0% 82%));
+}
+.adi_matrix_multi_checkboxes label {
+  display: block
+}
+.adi_matrix_data_block {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 2em;
+}
+.adi_matrix_data_block p { margin: .25em 0; }
+
 /* matrix tabs */
 .adi_matrix_matrix table#list th.adi_matrix_noborder { border:0 }
 .adi_matrix_none { margin-top:2em; text-align:center }
@@ -2946,9 +2960,13 @@ END_SCRIPT
         $rs = safe_column('name', 'txp_section', "name != 'default'");
 
         if ($rs) {
+            $out = '<div class="adi_matrix_multi_checkboxes">';
+
             foreach ($rs as $section) {
                 $out .= tag(checkbox($field_name.'[]',$section,(array_search($section,$section_list) !== false ? '1' : '0')).sp.$section,'label');
             }
+
+            $out .= '</div>';
 
             return $out;
         }
@@ -3418,37 +3436,36 @@ END_SCRIPT
                     // article selection
                     .tag(
                         hed(gTxt('adi_matrix_article_selection'), 3)
-                        .gTxt('section').br
-                        .tag($this->section_checkboxes($fieldRef."[criteria_section]",$matrix['criteria_section']),'div',' class="adi_matrix_multi_checkboxes"')
-                        .graf(tag(gTxt('category'),'label').$this->category_popup($fieldRef."[criteria_category]",$matrix['criteria_category']))
-                        .graf(tag(checkbox($fieldRef."[criteria_descendent_cats]",1,$matrix['criteria_descendent_cats']).sp.gTxt('adi_matrix_include_descendent_cats'),'label',' class="adi_matrix_label2"'))
-                        .graf(tag(gTxt('status'),'label').$this->status_popup($fieldRef."[criteria_status]",$matrix['criteria_status']))
-                        .graf(tag(gTxt('author'),'label').$this->user_popup($fieldRef."[criteria_author]",$matrix['criteria_author'],true))
-                        .graf(tag(gTxt('keywords'),'label').finput("text",$fieldRef."[criteria_keywords]",$matrix['criteria_keywords']))
-                        .graf(tag(gTxt('timestamp'),'label').$this->timestamp_popup($fieldRef."[criteria_timestamp]",$matrix['criteria_timestamp']))
-                        .graf(tag(gTxt('adi_matrix_expiry'),'label').$this->expiry_popup($fieldRef."[criteria_expiry]",$matrix['criteria_expiry']))
-                        .graf(tag(gTxt('adi_matrix_custom_condition'),'label').finput("text",$fieldRef."[criteria_condition]",$matrix['criteria_condition']))
-                        ,'div', ' class="adi_matrix_field"'
+                        .inputLabel($fieldRef."[criteria_section]", $this->section_checkboxes($fieldRef."[criteria_section]", $matrix['criteria_section']), 'section')
+                        .inputLabel($fieldRef."[criteria_category]", $this->category_popup($fieldRef."[criteria_category]",$matrix['criteria_category']), 'category')
+                        .graf(tag(checkbox($fieldRef."[criteria_descendent_cats]", 1, $matrix['criteria_descendent_cats']) . sp . gTxt('adi_matrix_include_descendent_cats'), 'label'))
+                        .inputLabel($fieldRef."[criteria_status]", $this->status_popup($fieldRef."[criteria_status]", $matrix['criteria_status']), 'status')
+                        .inputLabel($fieldRef."[criteria_author]", $this->user_popup($fieldRef."[criteria_author]", $matrix['criteria_author'], true), 'author')
+                        .inputLabel($fieldRef."[criteria_keywords]", finput("text", $fieldRef."[criteria_keywords]", $matrix['criteria_keywords']), 'keywords')
+                        .inputLabel($fieldRef."[criteria_timestamp]", $this->timestamp_popup($fieldRef."[criteria_timestamp]", $matrix['criteria_timestamp']), 'timestamp')
+                        .inputLabel($fieldRef."[criteria_expiry]", $this->expiry_popup($fieldRef."[criteria_expiry]", $matrix['criteria_expiry']), 'adi_matrix_expiry')
+                        .inputLabel($fieldRef."[criteria_condition]", finput("text", $fieldRef."[criteria_condition]", $matrix['criteria_condition']), 'adi_matrix_custom_condition')
+                        ,'div', ' class="adi_matrix_field txp-edit"'
                     )
                     // article data
                     .tag(
                         hed(gTxt('adi_matrix_article_data'), 3)
                         .tag(
                         tag(
-                            graf(tag(checkbox($fieldRef."[status]",1,$matrix['status']).span(sp.gTxt('status')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[keywords]",1,$matrix['keywords']).span(sp.gTxt('keywords')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[article_image]",1,$matrix['article_image']).span(sp.gTxt('article_image')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[category1]",1,$matrix['category1']).span(sp.gTxt('category1')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[category2]",1,$matrix['category2']).span(sp.gTxt('category2')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[posted]",1,$matrix['posted']).span(sp.gTxt('posted')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[expires]",1,$matrix['expires']).span(sp.gTxt('expires')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[title]",1,$matrix['title']).span(sp.gTxt('title')),'label',' class="adi_matrix_checkbox"'))
-                            .graf(tag(checkbox($fieldRef."[section]",1,$matrix['section']).span(sp.gTxt('section')),'label',' class="adi_matrix_checkbox"'))
+                            graf(tag(checkbox($fieldRef."[status]", 1, $matrix['status']) . span(sp.gTxt('status')), 'label',' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[keywords]", 1, $matrix['keywords']) . span(sp.gTxt('keywords')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[article_image]", 1, $matrix['article_image']) . span(sp.gTxt('article_image')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[category1]", 1, $matrix['category1']) . span(sp.gTxt('category1')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[category2]", 1, $matrix['category2']) . span(sp.gTxt('category2')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[posted]", 1, $matrix['posted']) . span(sp.gTxt('posted')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[expires]", 1, $matrix['expires']) . span(sp.gTxt('expires')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[title]", 1, $matrix['title']) . span(sp.gTxt('title')), 'label', ' class="adi_matrix_checkbox"'))
+                            .graf(tag(checkbox($fieldRef."[section]", 1, $matrix['section']) . span(sp.gTxt('section')), 'label', ' class="adi_matrix_checkbox"'))
                             ,'div', ' class="adi_matrix_field"'
                         )
                         .$cf_col
                         , 'div', array('class' => 'adi_matrix_data_block'))
-                    , 'div')
+                    , 'div', array('class' => 'txp-edit'))
                 , 'div', array('id' => 'matrix_id_'.$matrix_index, 'class' => 'adi_matrix_row'));
         }
 
