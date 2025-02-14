@@ -784,11 +784,11 @@ END_SCRIPT
                 }
 
                 // article timestamps
-                $adi_matrix_articles[$ID]['uposted'] = $uPosted; // unix timestamp format (in server timezone)
-                $adi_matrix_articles[$ID]['posted'] = $Posted; // article date/time string (YY-MM-DD HH:MM:SS) from database
+                $adi_matrix_articles[$ID]['uposted'] = $uPosted;
+                $adi_matrix_articles[$ID]['posted'] = $Posted;
                 $adi_matrix_articles[$ID]['display_posted'] = safe_strftime('%Y-%m-%d %X',$uPosted); // article date/time string (YY-MM-DD HH:MM:SS) displayed to user (TXP time)
-                $adi_matrix_articles[$ID]['uexpires'] = $uExpires; // unix timestamp format (in server timezone)
-                $adi_matrix_articles[$ID]['expires'] = $Expires; // article date/time string (YY-MM-DD HH:MM:SS) from database
+                $adi_matrix_articles[$ID]['uexpires'] = $uExpires;
+                $adi_matrix_articles[$ID]['expires'] = ($Expires === null ? '' : $Expires);
 
                 if ($Expires == '0000-00-00 00:00:00') {
                     // keep it zeroed
@@ -827,7 +827,7 @@ END_SCRIPT
         include_once txpath.'/include/txp_article.php'; // to get textile_main_fields()
 
         // set up variables in the style of $vars
-        $ID = '';
+        $ID = $description = $Expires = $reset_time = $expire_now = $AuthorID = $sPosted = $LastModID = $sLastMod = $url_title = $exp_year = $exp_month = $exp_day = $exp_hour = $exp_minute = $exp_second = $sExpires = '';
         $Title = $Title_plain = isset($data['title']) ? $data['title'] : '';
         $Status = isset($data['status']) ? $data['status'] : '';
         $Section = isset($data['section']) ? $data['section'] : '';
@@ -3385,7 +3385,7 @@ END_SCRIPT
                 $cf_checkboxes .= graf(tag(checkbox("matrix_".$matrix_index."[$custom_x]",1,$matrix[$custom_x]).span(sp.$cf_name,'label'),'label',' class="adi_matrix_checkbox"'));
             }
 
-            $cf_td = tag($cf_checkboxes, 'div', ' class="adi_matrix_field adi_matrix_custom_field"');
+            $cf_col = tag($cf_checkboxes, 'div', ' class="adi_matrix_field adi_matrix_custom_field"');
             $url = '?event=adi_matrix_matrix_'.$matrix_index;
 
             if ($matrix_index == 'new') {
@@ -3521,7 +3521,7 @@ END_SCRIPT
                             .graf(tag(checkbox("matrix_".$matrix_index."[section]",1,$matrix['section']).span(sp.gTxt('section')),'label',' class="adi_matrix_checkbox"'))
                             ,'div', ' class="adi_matrix_field"'
                         )
-                        .$cf_td
+                        .$cf_col
                         , 'div', array('class' => 'adi_matrix_data_block'))
                     , 'div')
                 , 'div', array('id' => 'matrix_id_'.$matrix_index, 'class' => 'adi_matrix_row'));
