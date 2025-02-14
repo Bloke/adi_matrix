@@ -116,7 +116,6 @@ adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
 adi_matrix_privs => Role
-adi_matrix_reset => Reset
 adi_matrix_select => Select matrix
 adi_matrix_show_section => Show section
 adi_matrix_sort => Sort by
@@ -421,19 +420,29 @@ class adi_matrix
 .adi_matrix_data_block p { margin: .25em 0; }
 
 /* matrix tabs */
-.adi_matrix_matrix table#list th.adi_matrix_noborder { border:0 }
-.adi_matrix_none { margin-top:2em; text-align:center }
-.adi_matrix_field_title { white-space:nowrap } /* stops edit link dropping below */
-.adi_matrix_timestamp { white-space:nowrap } /* stops date or time being split */
-.adi_matrix_future a { font-weight:bold }
-.adi_matrix_expired a { font-style:italic }
-.adi_matrix_error input { border-color:#b22222; color:#b22222 }
-.adi_matrix_edit_link span { display:inline-block; width:20px; height:20px; }
-/* matrix tabs 4.5 */
-.txp-list .adi_matrix_timestamp .time input { margin-top:0.5em }
-.txp-list .adi_matrix_timestamp { min-width:11em }
-/* matrix tabs 4.6 */
-.txp-list th,.txp-list td { padding-left:0.5em }
+ .adi_matrix_matrix_table :is(input[type=text]:not([maxlength]),select) {
+    width: min(8ch + 5vw, 12em);
+  }
+ .adi_matrix_timestamp {  white-space:nowrap; }
+ .adi_matrix_timestamp div { margin-block-end: .25em}
+ .adi_matrix_edit_link { margin-inline-start: .25em}
+@media (min-width: 47em) {
+  .adi_matrix_matrix thead th:first-child,
+  .adi_matrix_matrix tbody td:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    background-color: hsl(0 5% 97% / .8)
+  }
+  .adi_matrix_matrix tbody td:first-child { white-space: nowrap; }
+
+  @media screen and (prefers-color-scheme:dark) {
+    .adi_matrix_matrix thead th:first-child,
+    .adi_matrix_matrix tbody td:first-child {
+      background-color: hsl(0 5% 15% / .8)
+    }
+  }
+}
 /* glz_custom_fields */
 html[xmlns] td.glz_custom_date-picker_field.clearfix { display:table-cell!important } /* override clearfix  - for date-picker field */
 /*.adi_matrix_matrix input.date-picker { float:left; width:7em }*/
@@ -837,7 +846,7 @@ END_SCRIPT
         include_once txpath.'/include/txp_article.php'; // to get textile_main_fields()
 
         // set up variables in the style of $vars
-        $ID = $description = $Expires = $reset_time = $expire_now = $AuthorID = $sPosted = $LastModID = $sLastMod = $url_title = $exp_year = $exp_month = $exp_day = $exp_hour = $exp_minute = $exp_second = $sExpires = '';
+        $ID = $description = $Posted = $Expires = $reset_time = $expire_now = $AuthorID = $sPosted = $LastModID = $sLastMod = $year = $month = $day = $hour = $minute = $second = $url_title = $exp_month = $exp_day = $exp_hour = $exp_minute = $exp_second = $sExpires = '';
         $Title = $Title_plain = isset($data['title']) ? $data['title'] : '';
         $Status = isset($data['status']) ? $data['status'] : '';
         $Section = isset($data['section']) ? $data['section'] : '';
@@ -854,7 +863,6 @@ END_SCRIPT
         }
 
         if (isset($data['posted'])) {
-            // this is in TXP date/time
             extract($data['posted']);
             $Posted = $year.'-'.$month.'-'.$day.' '.$hour.':'.$minute.':'.$second;
         } else {
@@ -864,6 +872,12 @@ END_SCRIPT
         }
 
         // expires
+        if (isset($data['expires']['expire_now'])) {
+            $expires_now = '1';
+        } else {
+            $expires_now = '';
+        }
+
         if (isset($data['expires'])) {
             // this is in TXP date/time
             foreach ($data['expires'] as $index => $value) {
@@ -996,24 +1010,28 @@ END_SCRIPT
         $expiresq = '';
 
         if (isset($data['expires'])) {
-            if ($exp_year == '0000') {
-                $expiry = 0;
+            if ($expires_now) {
+                $expiresq = "Expires=now(), ";
             } else {
-                // convert TXP date/time to DB timestamp
-                $ts = strtotime($Expires);
-                $expiry = $ts - tz_offset($ts);
-            }
-
-            if ($expiry) {
-                $date_error = ($ts === false || $ts === -1);
-
-                if (!$date_error) {
-                    $expires = $ts - tz_offset($ts);
-                    $whenexpires = "from_unixtime($expires)";
-                    $expiresq = "Expires=$whenexpires, ";
+                if ($exp_year == '0000') {
+                    $expiry = 0;
+                } else {
+                    // convert TXP date/time to DB timestamp
+                    $ts = strtotime($Expires);
+                    $expiry = $ts - tz_offset($ts);
                 }
-            } else {
-                $expiresq = "Expires=".$this->nulldatetime.", ";
+
+                if ($expiry) {
+                    $date_error = ($ts === false || $ts === -1);
+
+                    if (!$date_error) {
+                        $expires = $ts - tz_offset($ts);
+                        $whenexpires = "from_unixtime($expires)";
+                        $expiresq = "Expires=$whenexpires, ";
+                    }
+                } else {
+                    $expiresq = "Expires=".$this->nulldatetime.", ";
+                }
             }
         }
 
@@ -1252,6 +1270,12 @@ END_SCRIPT
         }
 
         // expires
+        if (isset($data['expires']['expire_now'])) {
+            $expires_now = '1';
+        } else {
+            $expires_now = '';
+        }
+
         if (isset($data['expires'])) {
             // this is in TXP date/time
             foreach ($data['expires'] as $index => $value) {
@@ -1328,18 +1352,22 @@ END_SCRIPT
         $lastmod = ($when_ts > time() ? 'now()' : $when);
 
         // set expiry timestamp (already validated/massaged by adi_matrix_get_post_data)
-        if ($exp_year == '0000') {
-            $expires = 0;
+        if ($expires_now == 1) {
+            $whenexpires = 'now()';
         } else {
-            // convert TXP date/time to DB timestamp
-            $ts = strtotime($exp_year.'-'.$exp_month.'-'.$exp_day.' '.$exp_hour.':'.$exp_minute.':'.$exp_second);
-            $expires = $ts - tz_offset($ts);
-        }
+            if ($exp_year == '0000') {
+                $expires = 0;
+            } else {
+                // convert TXP date/time to DB timestamp
+                $ts = strtotime($exp_year.'-'.$exp_month.'-'.$exp_day.' '.$exp_hour.':'.$exp_minute.':'.$exp_second);
+                $expires = $ts - tz_offset($ts);
+            }
 
-        if ($expires) {
-            $whenexpires = "from_unixtime($expires)";
-        } else {
-            $whenexpires = $this->nulldatetime;
+            if ($expires) {
+                $whenexpires = "from_unixtime($expires)";
+            } else {
+                $whenexpires = $this->nulldatetime;
+            }
         }
 
         // who's doing the doing?
@@ -1996,10 +2024,10 @@ END_SCRIPT
         global $step, $adi_matrix_cfs, $adi_matrix_list, $txp_user;
 
         $out = '';
-        $out .= $this->table_head($matrix_index,'header');
+        $out .= $this->table_head($matrix_index, 'header');
 
         if ($adi_matrix_list[$matrix_index]['footer']) {
-            $out .= $this->table_head($matrix_index,'footer');
+            $out .= $this->table_head($matrix_index, 'footer');
         }
 
         $out .= '<tbody>';
@@ -2023,6 +2051,7 @@ END_SCRIPT
                     echo '<b>Validation errors #'.$id.':</b>';
                     dmp($article_errors);
                 }
+
                 // based on standard save button in txp_article.php
                 $Status = $data['status'];
                 $AuthorID = $data['author'];
@@ -2055,7 +2084,9 @@ END_SCRIPT
                 } else {
                     $title_text = gTxt('edit');
                 }
+
                 $class = '';
+
                 // highlighting for expired/future articles
                 if ($this->get_pref('adi_matrix_article_highlighting')) {
                     if ($highlight) {
@@ -2070,8 +2101,8 @@ END_SCRIPT
 
                 // ID
                 if ($this->get_pref('adi_matrix_display_id')) {
-                    $id_link = eLink('article','edit','ID',$id,$id);
-                    $out .= tag($id_link,'td',' class="adi_matrix_field_id"');
+                    $id_link = eLink('article', 'edit', 'ID', $id, $id);
+                    $out .= tag($id_link, 'td', ' class="adi_matrix_field_id"');
                 }
 
                 // title
@@ -2511,7 +2542,7 @@ END_SCRIPT
         pagetop($adi_matrix_list[$matrix_index]['name'],$message);
 
         // output matrix table & input form
-        $table = $this->matrix_table($adi_matrix_articles,$matrix_index,$page,$errors,$updates);
+        $table = $this->matrix_table($adi_matrix_articles, $matrix_index, $page, $errors, $updates);
         $tags = array('<input', '<textarea', '<select'); // tags which indicate that a save button is deserved
         $save_button = false;
 
@@ -2519,65 +2550,67 @@ END_SCRIPT
             $save_button = $save_button || strpos($table,$tag);
         }
 
-        $class = 'adi_matrix_matrix txp-list';
+        $class = 'adi_matrix_matrix_table txp-list';
 
-        echo form(
-            tag($adi_matrix_list[$matrix_index]['name'], 'h1')
-            .'<div class="txp-listtables" tabindex="0" aria-label="List">'
-            .startTable('list','',$class)
-            .$table
-            .endTable()
-            .'</div>'
-            .(empty($adi_matrix_articles) ?
-                graf(tag(gTxt('no_articles_recorded'),'em'),' class="adi_matrix_none"')
-                : ''
-            )
-            .($save_button ?
-                tag(
-                    hInput('page',$page) // pass on paging
-                    .fInput("submit", "do_something", gTxt('save'), "publish")
-                    .eInput("adi_matrix_matrix_".$matrix_index).sInput("update"),
-                    'div',
-                    ' class="adi_matrix_button"'
+        echo tag(
+            form(
+                tag($adi_matrix_list[$matrix_index]['name'], 'h1')
+                .'<div class="txp-listtables" tabindex="0" aria-label="List">'
+                .startTable('', '', $class)
+                .$table
+                .endTable()
+                .'</div>'
+                .(empty($adi_matrix_articles) ?
+                    graf(tag(gTxt('no_articles_recorded'),'em'),' class="adi_matrix_none"')
+                    : ''
                 )
-                : ''
-            )
-            .tag(
-                graf(
-                    gTxt('adi_matrix_default_sort')
-                    .sp.sp
-                    .elink(
-                        $event
-                        ,''
-                        ,'reset_sort'
-                        ,1
-                        ,$sort_options[$adi_matrix_list[$matrix_index]['sort']]
-                            .', '
-                            .$sort_dirs[$adi_matrix_list[$matrix_index]['dir']]
-                            .', '
-                            .$sort_types[$adi_matrix_list[$matrix_index]['sort_type']]
-                        ,'','','' // to override TXP 4.5 default title "Edit"
+                .($save_button ?
+                    tag(
+                        hInput('page',$page) // pass on paging
+                        .fInput("submit", "do_something", gTxt('save'), "publish")
+                        .eInput("adi_matrix_matrix_".$matrix_index).sInput("update"),
+                        'div',
+                        ' class="adi_matrix_button"'
                     )
-                    .br
-                    .gTxt('adi_matrix_sort_type')
-                    .sp.sp
-                    .strong(gTxt('adi_matrix_'.$sort_type))
-                    .' / '
-                    .elink(
-                        $event
-                        ,''
-                        ,'sort_type'
-                        ,($sort_type == 'numerical' ? 'alphabetical' : 'numerical')
-                        ,gTxt(($sort_type == 'numerical' ? 'adi_matrix_alphabetical' : 'adi_matrix_numerical'))
-                        ,'','','' // to override TXP 4.5 default title "Edit"
-                    )
+                    : ''
                 )
-                ,'div',' class="adi_matrix_matrix_prefs"')
-            ,''
-            ,''
-            ,'post'
-            ,$class
-        );
+                .tag(
+                    graf(
+                        gTxt('adi_matrix_default_sort')
+                        .sp.sp
+                        .elink(
+                            $event
+                            ,''
+                            ,'reset_sort'
+                            ,1
+                            ,$sort_options[$adi_matrix_list[$matrix_index]['sort']]
+                                .', '
+                                .$sort_dirs[$adi_matrix_list[$matrix_index]['dir']]
+                                .', '
+                                .$sort_types[$adi_matrix_list[$matrix_index]['sort_type']]
+                            ,'','','' // to override TXP 4.5 default title "Edit"
+                        )
+                        .br
+                        .gTxt('adi_matrix_sort_type')
+                        .sp.sp
+                        .strong(gTxt('adi_matrix_'.$sort_type))
+                        .' / '
+                        .elink(
+                            $event
+                            ,''
+                            ,'sort_type'
+                            ,($sort_type == 'numerical' ? 'alphabetical' : 'numerical')
+                            ,gTxt(($sort_type == 'numerical' ? 'adi_matrix_alphabetical' : 'adi_matrix_numerical'))
+                            ,'','','' // to override TXP 4.5 default title "Edit"
+                        )
+                    )
+                    ,'div',' class="adi_matrix_matrix_prefs"')
+                ,''
+                ,''
+                ,'post'
+                ,$class
+            )
+            , 'div', array('id' => 'txp-list-container'));
 
         // flashing message
         if ($errors) {
@@ -3100,6 +3133,16 @@ END_SCRIPT
             $class .= ' created';
         }
 
+        $resetcheck = '';
+
+        if ($type === 'posted') {
+            $resetcheck = br.tag(gTxt('reset_time'), 'label', ' class="reset_time-now"')
+                .sp.checkbox($name.'[reset_time]', '1', '0');
+        } elseif ($type === 'expires') {
+            $resetcheck = br.tag(gTxt('set_expire_now'), 'label', ' class="reset_expire-now"')
+            .sp.checkbox($name.'[expire_now]', '1', '0');
+        }
+
         $out =
             tag(
                 $this->matrix_tsi($name.'[year]','%Y',$ts,'',$type)
@@ -3116,7 +3159,7 @@ END_SCRIPT
                 .$this->matrix_tsi($name.'[minute]','%M',$ts,'',$type)
                 .' :'
                 .$this->matrix_tsi($name.'[second]','%S',$ts,'',$type)
-                .($type == 'posted' ? br.tag(gTxt('adi_matrix_reset'),'label',' class="reset_time-now"').sp.checkbox($name.'[reset_time]','1','0') : '')
+                .$resetcheck
                 ,'div'
                 ,' class="time'.$class.'"'
             );
