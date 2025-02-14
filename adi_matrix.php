@@ -3900,13 +3900,7 @@ END_SCRIPT
             );
 
             // output table & input form
-            echo $matrix_select . n .
-                    fInput('submit', array(
-                        'name' => 'do_something',
-                        'class' => 'navlink',
-                        'form' => 'adi_matrix_admin_form',
-                        ),
-                        gTxt('save'))
+            echo $matrix_select
                 .form(
                     $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
                     .eInput('adi_matrix_admin')
@@ -3917,7 +3911,16 @@ END_SCRIPT
                     ,'adi_matrix_admin'
                     ,''
                     ,'adi_matrix_admin_form'
-                );
+                )
+                .n
+                .graf(
+                    fInput('submit', array(
+                        'name' => 'do_something',
+                        'class' => 'publish',
+                        'form' => 'adi_matrix_admin_form',
+                        ),
+                        gTxt('save'))
+                , 'txp-edit-actions');
         }
 
         if ($this->debug) {
