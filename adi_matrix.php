@@ -319,7 +319,7 @@ class adi_matrix
                 $priv_set = $all_privs; // everybody's welcome
             }
 
-            add_privs($matrix_event,$priv_set); // add priv set for each matrix event (to $txp_permissions)
+            add_privs($matrix_event, $priv_set); // add priv set for each matrix event (to $txp_permissions)
 
             if ($matrix['user']) {
                 $user_allowed = ($txp_user == $matrix['user']);
@@ -336,10 +336,10 @@ class adi_matrix
 
                 if ($tab == 'start') {
                     // switch on Home tab
-                    add_privs('tab.start',$all_privs); // all privs
+                    add_privs('tab.start', $all_privs);
                 }
 
-                register_tab($tab, $matrix_event,$matrix_tab_name);
+                register_tab($tab, $matrix_event, $matrix_tab_name);
                 register_callback(array($this, 'matrix_matrix'), $matrix_event);
             }
 
@@ -3065,12 +3065,24 @@ END_SCRIPT
     }
 
     // generate tab popup list for admin settings table
-    public function tab_popup($select_name,$value)
+    public function tab_popup($select_name, $value)
     {
+        global $plugin_areas;
+
+        // Don't want people adding matrices to these areas.
+        $nogo_tabs = array('admin', 'presentation', 'extensions');
+
         $tabs = array(
             'content' => gTxt('tab_content'),
             'start' => gTxt('tab_start'),
         );
+
+        foreach ($plugin_areas as $area => $panels) {
+            if (!array_key_exists($area, $tabs) && !in_array($area, $nogo_tabs)) {
+                // Assume the gTxt string adopts the tab_ prefix convention.
+                $tabs[$area] = gTxt('tab_'.$area);
+            }
+        }
 
         return selectInput($select_name, $tabs, $value);
     }
