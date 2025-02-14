@@ -96,8 +96,6 @@ adi_matrix_expiry => Expiry
 adi_matrix_footer => Footer
 adi_matrix_has_expiry => Has expiry
 adi_matrix_include_descendent_cats => Include descendent categories
-adi_matrix_install_fail => Unable to install
-adi_matrix_installed => Installed
 adi_matrix_invalid_timestamp => Invalid timestamp
 adi_matrix_logged_in_user => Logged in user
 adi_matrix_admin => Article Matrix Admin
@@ -117,6 +115,7 @@ adi_matrix_not_installed => Not installed
 adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
+adi_matrix_privs => Role
 adi_matrix_reset => Reset
 adi_matrix_select => Select matrix
 adi_matrix_show_section => Show section
@@ -127,9 +126,6 @@ adi_matrix_time_any => Any time
 adi_matrix_time_future => Future
 adi_matrix_time_past => Past
 adi_matrix_two_categories => Two categories
-adi_matrix_uninstall => Uninstall
-adi_matrix_uninstall_fail => Unable to uninstall
-adi_matrix_uninstalled => Uninstalled
 adi_matrix_update_matrix => Update matrix settings
 adi_matrix_upgrade_fail => Unable to upgrade
 adi_matrix_upgrade_required => Upgrade required
@@ -3425,7 +3421,7 @@ END_SCRIPT
                         .inputLabel($fieldRef."[dir]", selectInput($fieldRef."[dir]", $sort_dirs,$matrix['dir'], false), 'adi_matrix_sort_direction')
                         .inputLabel($fieldRef."[sort_type]", selectInput($fieldRef."[sort_type]", $sort_types, $matrix['sort_type'],false), 'adi_matrix_sort_type')
                         .inputLabel($fieldRef."[user]", $this->user_popup($fieldRef."[user]", $matrix['user']), 'adi_matrix_user')
-                        .inputLabel($fieldRef."[privs]", $this->privs_popup($fieldRef."[privs]",$matrix['privs']), 'privileges')
+                        .inputLabel($fieldRef."[privs]", $this->privs_popup($fieldRef."[privs]",$matrix['privs']), 'adi_matrix_privs')
                         .inputLabel($fieldRef."[footer]", yesnoRadio($fieldRef."[footer]", $matrix['footer']), 'adi_matrix_footer')
                         .inputLabel($fieldRef."[show_section]", yesnoRadio($fieldRef."[show_section]", $matrix['show_section']), 'adi_matrix_show_section')
                         .hInput($fieldRef."[cf_links]", '') //.inputLabel($fieldRef."[cf_links]", yesnoRadio($fieldRef."[cf_links]", $matrix['cf_links']), 'adi_matrix_cf_links')
