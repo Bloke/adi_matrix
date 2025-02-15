@@ -420,7 +420,7 @@ class adi_matrix
 .adi_matrix_data_block p { margin: .25em 0; }
 
 /* matrix tabs */
- .adi_matrix_matrix_table :is(input[type=text]:not([maxlength]),select) {
+ .adi_matrix_matrix :is(input[type=text]:not([maxlength]),select) {
     width: min(8ch + 5vw, 12em);
   }
  .adi_matrix_timestamp {  white-space:nowrap; }
@@ -2115,8 +2115,8 @@ END_SCRIPT
                 }
 
                 $title_link = '<span title="'.$title_text.'"'.$class.'>'.$title_link.'</span>';
-                $arrow_link = sp.href(
-                    tag(sp, 'span', array('class' => 'ui ui-icon-pencil')),
+                $edit_link = sp.href(
+                    tag(sp, 'span', array('class' => 'ui-icon ui-icon-pencil')),
                     array(
                         'event'      => 'article',
                         'step'       => 'edit',
@@ -2128,12 +2128,12 @@ END_SCRIPT
                     ));
 
                 if ($adi_matrix_list[$matrix_index]['title'] && $this->get_pref('adi_matrix_display_id')) {
-                    $arrow_link = '';
+                    $edit_link = '';
                 }
 
                 if ($adi_matrix_list[$matrix_index]['title']) {
                     $has_privs ? // decide if user gets input fields or not
-                        $out .= tda(finput("text",$prefix."[title]",$data['title'],'',($this->get_pref('adi_matrix_input_field_tooltips') ?htmlspecialchars($data['title']):'')).$arrow_link,' class="adi_matrix_field_title"') :
+                        $out .= tda(finput("text",$prefix."[title]",$data['title'],'',($this->get_pref('adi_matrix_input_field_tooltips') ?htmlspecialchars($data['title']):'')) . $edit_link, ' class="adi_matrix_field_title"') :
                         $out .= tda($title_link,' class="adi_matrix_field_title"');
                 } else {
                     $out .= tag($title_link,'td',' class="adi_matrix_field_title"');
@@ -2157,6 +2157,7 @@ END_SCRIPT
                 // custom fields
                 foreach ($adi_matrix_cfs as $index => $cf_name) {
                     $custom_x = 'custom_'.$index;
+
                     if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) {
                         // check that custom field is known to adi_matrix
                         if ($adi_matrix_list[$matrix_index][$custom_x]) {
@@ -2183,19 +2184,19 @@ END_SCRIPT
 
                 // article image
                 if ($adi_matrix_list[$matrix_index]['article_image']) {
-                    $arrow_link = '';
+                    $edit_link = '';
                     // CUSTOM FIELD LINKS DISABLED
     //              if (trim($data['article_image']) && ($adi_matrix_list[$matrix_index]['cf_links'] == 'article_image')) {
     //                  $image_ids = explode(',',$data['article_image']);
     //                  $image_id = $image_ids[0];
     //                  if (safe_count('txp_image',"id=$image_id",$this->debug))
-    //                      $arrow_link = sp.eLink('image','image_edit','id',$image_id,'&rarr;','','',gTxt('edit_image').' #'.$image_id);
+    //                      $edit_link = sp.eLink('image','image_edit','id',$image_id,'&rarr;','','',gTxt('edit_image').' #'.$image_id);
     //                  else // image not found
-    //                      $arrow_link = sp.'?';
+    //                      $edit_link = sp.'?';
     //              }
                     $has_privs ? // decide if user gets input fields or not
-                        $out .= tda(finput("text",$prefix."[article_image]",$data['article_image'],'',($this->get_pref('adi_matrix_input_field_tooltips')?htmlspecialchars($data['article_image']):'')).$arrow_link,' class="adi_matrix_field_image"') :
-                        $out .= ($data['article_image'] ? tda($data['article_image'].$arrow_link,' class="adi_matrix_field_image"') : tda(sp,' class="adi_matrix_field_image"')); // make sure the table cell stretches if no data
+                        $out .= tda(finput("text",$prefix."[article_image]",$data['article_image'],'',($this->get_pref('adi_matrix_input_field_tooltips')?htmlspecialchars($data['article_image']):'')).$edit_link,' class="adi_matrix_field_image"') :
+                        $out .= ($data['article_image'] ? tda($data['article_image'].$edit_link,' class="adi_matrix_field_image"') : tda(sp,' class="adi_matrix_field_image"')); // make sure the table cell stretches if no data
                 }
                 // keywords
                 if ($adi_matrix_list[$matrix_index]['keywords']) {
@@ -2530,11 +2531,13 @@ END_SCRIPT
             // dump article data (all articles in matrix)
             $rows = safe_rows('*','textpattern',"ID IN (".implode(',',array_keys($adi_matrix_articles)).")");
             echo 'START ARTICLE MATRIX DUMP'.br;
+
             foreach ($rows as $i => $a) {
                 foreach ($a as $f => $d)
                     echo htmlentities("$f=$d,");
                 echo br;
             }
+
             echo 'END ARTICLE MATRIX DUMP'.br;
         }
 
@@ -2547,14 +2550,14 @@ END_SCRIPT
         $save_button = false;
 
         foreach ($tags as $tag) {
-            $save_button = $save_button || strpos($table,$tag);
+            $save_button = $save_button || strpos($table, $tag);
         }
 
-        $class = 'adi_matrix_matrix_table txp-list';
+        $class = 'adi_matrix_matrix txp-list';
 
         echo tag(
             form(
-                tag($adi_matrix_list[$matrix_index]['name'], 'h1')
+                tag($adi_matrix_list[$matrix_index]['name'], 'h1', array('class' => 'txp_heading'))
                 .'<div class="txp-listtables" tabindex="0" aria-label="List">'
                 .startTable('', '', $class)
                 .$table
