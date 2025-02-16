@@ -66,6 +66,7 @@ adi_matrix_sort_type => Sort type
 adi_matrix => Adi Matrix
 adi_matrix_article_highlighting => Article title highlighting
 adi_matrix_article_tooltips => Article title tooltips
+adi_matrix_article_expires_before_postdate => Article expires before its publication date.
 adi_matrix_display_id => Show article IDs
 adi_matrix_input_field_tooltips => Input field tooltips
 adi_matrix_jquery_ui => jQuery UI script file
@@ -111,7 +112,6 @@ adi_matrix_updated => Matrix settings updated
 adi_matrix_new_article => New article
 adi_matrix_no_category => No category
 adi_matrix_no_expiry => No expiry
-adi_matrix_not_installed => Not installed
 adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
@@ -126,9 +126,8 @@ adi_matrix_time_future => Future
 adi_matrix_time_past => Past
 adi_matrix_two_categories => Two categories
 adi_matrix_update_matrix => Update matrix settings
-adi_matrix_upgrade_fail => Unable to upgrade
-adi_matrix_upgrade_required => Upgrade required
-adi_matrix_upgraded => Upgraded
+adi_matrix_install_fail => Unable to install adi_matrix
+adi_matrix_upgrade_fail => Unable to upgrade adi_matrix
 adi_matrix_user => User
 EOT;
 
@@ -171,30 +170,31 @@ class adi_matrix
 {
     protected $event = 'adi_matrix';
     protected $privs = array();
+    protected $all_privs = '1,2,3,4,5,6'; // everybody
     protected $debug = 0; // general debuggy info
     protected $dump = 0; // dump of article data
-    protected $plugin_status = false;
     protected $has_glz_cf = false;
     protected $is_txp460 = false;
     protected $is_txp470 = false;
     protected $is_cfs_v20 = false;
     protected $nulldatetime = '';
     protected $categories = array();
+    protected $adi_matrix_validation_errors = array();
 
     /**
      * Plugin startup.
      */
     public function __construct()
     {
-        global $event, $step, $prefs, $txp_groups, $txp_user, $txp_permissions, $adi_matrix_cfs, $adi_matrix_list, $adi_matrix_validation_errors;
+        global $event, $step, $prefs, $adi_matrix_cfs;
 
         // using article_validate & new default section pref (4.5.0), so decamp sharpish if need be
-        if (!version_compare(txp_version,'4.5.0','>=')) {
+        if (!version_compare(txp_version, '4.5.0', '>=')) {
             return;
         }
 
-        $this->is_txp460 = (version_compare(txp_version,'4.6-dev','>='));
-        $this->is_txp470 = (version_compare(txp_version,'4.7-dev','>='));
+        $this->is_txp460 = (version_compare(txp_version, '4.6-dev','>='));
+        $this->is_txp470 = (version_compare(txp_version, '4.7-dev','>='));
         $this->nulldatetime = ($this->is_txp460 ? 'NULL' : NULLDATETIME);
 
         // defines privileges required to view a matrix with privilege restriction (same indexing as $txp_groups)
@@ -208,12 +208,12 @@ class adi_matrix
         );
 
         // plugin lifecycle
-        register_callback(array($this, 'lifecycle'),'plugin_lifecycle.' . $this->event);
+        register_callback(array($this, 'lifecycle'), 'plugin_lifecycle.' . $this->event);
 
         // adi_matrix admin tab
         add_privs('adi_matrix_admin'); // add priv group - defaults to priv '1' only
-        register_tab('extensions','adi_matrix_admin',gTxt('adi_article_matrix')); // add new tab under 'Extensions'
-        register_callback(array($this, 'matrix_admin'),'adi_matrix_admin');
+        register_tab('extensions', 'adi_matrix_admin', gTxt('adi_article_matrix')); // add new tab under 'Extensions'
+        register_callback(array($this, 'matrix_admin'), 'adi_matrix_admin');
 
         // look for glz_custom_fields
         $this->has_glz_cf = load_plugin('glz_custom_fields');
@@ -257,25 +257,25 @@ class adi_matrix
         // discover custom fields (standard 1-10 & glz 11+) and their non-lowercased titles
         $adi_matrix_cfs = getCustomFields();
 
-        foreach ($adi_matrix_cfs as $index => $value)
+        foreach ($adi_matrix_cfs as $index => $value) {
             $adi_matrix_cfs[$index] = $prefs['custom_'.$index.'_set']; // index = custom fields number, value = custom field title
+        }
 
         // build a picture of article categories
-        $this->categories = $this->get_categories(getTree('root','article'));
+        $this->categories = $this->get_categories(getTree('root', 'article'));
 
         // validation errors
-        $adi_matrix_validation_errors = array(
+        $this->adi_matrix_validation_errors = array(
             0 => gTxt('adi_matrix_invalid_timestamp'),
-            1 => gTxt('article_expires_before_postdate'),
+            1 => gTxt('adi_matrix_article_expires_before_postdate'),
             2 => gTxt('adi_matrix_duplicate_url_title'),
             3 => gTxt('adi_matrix_blank_url_title'),
         );
 
-        $this->plugin_status = fetch('status', 'txp_plugin', 'name', 'adi_matrix', $this->debug);
-
         add_privs('prefs.' . $this->event, '1,2');
         add_privs('plugin_prefs.' . $this->event, '1,2');
         register_callback(array($this, 'options'),'plugin_prefs.' . $this->event);
+        register_callback(array($this, 'inject_prefs_js'), 'prefs');
 
         // glz_custom_fields stuff
         if ($this->has_glz_cf) {
@@ -294,71 +294,6 @@ class adi_matrix
                     register_callback(array($this, 'tiny_mce_style'),'admin_side','head_end');
                     register_callback(array($this, 'tiny_mce_'.$this->get_pref('adi_matrix_tiny_mce_type')),'admin_side','footer');
                 }
-
-            }
-        }
-                register_callback(array($this, 'inject_prefs_js'), 'prefs');
-
-        // article matrix tabs
-        $adi_matrix_list = array();
-
-        if ($this->installed()) {
-            $adi_matrix_list = $this->read_settings($this->upgrade());
-        }
-
-        $all_privs = '1,2,3,4,5,6'; // everybody
-
-        foreach ($adi_matrix_list as $index => $matrix) {
-            $matrix_event = 'adi_matrix_matrix_'.$index;
-            $matrix_tab_name = $matrix['name'];
-
-            if ($matrix['privs']) {
-                $priv_set = $this->privs[$matrix['privs']];
-            } else {
-                $priv_set = $all_privs; // everybody's welcome
-            }
-
-            add_privs($matrix_event, $priv_set); // add priv set for each matrix event (to $txp_permissions)
-
-            if ($matrix['user']) {
-                $user_allowed = ($txp_user == $matrix['user']);
-            } else {
-                // open to all users
-                $user_allowed = true;
-            }
-
-            $has_privs = has_privs($matrix_event);
-            $register_this_tab = ($user_allowed && $has_privs) || has_privs('adi_matrix_admin');
-
-            if ($register_this_tab) {
-                $tab = $matrix['tab'];
-
-                if ($tab == 'start') {
-                    // switch on Home tab
-                    add_privs('tab.start', $all_privs);
-                }
-
-                register_tab($tab, $matrix_event, $matrix_tab_name);
-                register_callback(array($this, 'matrix_matrix'), $matrix_event);
-            }
-
-            if ($this->debug) {
-                echo "MATRIX: index=$index, event=$matrix_event, name=".$matrix['name'].", user=".$matrix['user'].", privs=".$matrix['privs'].", priv_set=$matrix_event($priv_set), tab=".$matrix['tab'].br;
-                $user_privs = safe_field('privs','txp_users',"name='$txp_user'");
-                echo "USER: user=$txp_user, user_privs=$user_privs, user_allowed=$user_allowed, has_privs=$has_privs".br;
-                echo "TAB: register_this_tab=$register_this_tab".br.br;
-            }
-        }
-
-        if ($this->debug) {
-            echo '<b>$adi_matrix_privs:</b>';
-            dmp($this->privs);
-            echo '<b>adi_matrix added priv sets ($txp_permissions):</b>'.br;
-
-            foreach ($txp_permissions as $index => $value) {
-                if (strpos($index,'adi_matrix') === 0) {
-                    echo $index.' = '.$value.br;
-                }
             }
         }
 
@@ -374,6 +309,10 @@ class adi_matrix
 
         if (strstr($event,'adi_matrix_matrix_')) {
             register_callback(array($this, 'matrix_script'),'admin_side','head_end');
+        }
+
+        if ($this->installed()) {
+            $this->matrix_panel_setup();
         }
     }
 
@@ -527,6 +466,73 @@ $(function(){
 });
 END_SCRIPT
         );
+    }
+
+    /**
+     * Build matrix panel callbacks
+     *
+     * @return [type] [description]
+     */
+    public function matrix_panel_setup()
+    {
+        global $txp_user, $txp_permissions, $adi_matrix_list;
+
+        // article matrix tabs
+        $adi_matrix_list = $this->read_settings(false);
+
+        foreach ($adi_matrix_list as $index => $matrix) {
+            $matrix_event = 'adi_matrix_matrix_'.$index;
+            $matrix_tab_name = $matrix['name'];
+
+            if ($matrix['privs']) {
+                $priv_set = $this->privs[$matrix['privs']];
+            } else {
+                $priv_set = $this->all_privs; // everybody's welcome
+            }
+
+            add_privs($matrix_event, $priv_set); // add priv set for each matrix event (to $txp_permissions)
+
+            if ($matrix['user']) {
+                $user_allowed = ($txp_user == $matrix['user']);
+            } else {
+                // open to all users
+                $user_allowed = true;
+            }
+
+            $has_privs = has_privs($matrix_event);
+            $register_this_tab = ($user_allowed && $has_privs) || has_privs('adi_matrix_admin');
+
+            if ($register_this_tab) {
+                $tab = $matrix['tab'];
+
+                if ($tab == 'start') {
+                    // switch on Home tab
+                    add_privs('tab.start', $this->all_privs);
+                }
+
+                register_tab($tab, $matrix_event, $matrix_tab_name);
+                register_callback(array($this, 'matrix_matrix'), $matrix_event);
+            }
+
+            if ($this->debug) {
+                echo "MATRIX: index=$index, event=$matrix_event, name=".$matrix['name'].", user=".$matrix['user'].", privs=".$matrix['privs'].", priv_set=$matrix_event($priv_set), tab=".$matrix['tab'].br;
+                $user_privs = safe_field('privs', 'txp_users', "name='$txp_user'");
+                echo "USER: user=$txp_user, user_privs=$user_privs, user_allowed=$user_allowed, has_privs=$has_privs".br;
+                echo "TAB: register_this_tab=$register_this_tab".br.br;
+            }
+        }
+
+        if ($this->debug) {
+            echo '<b>$adi_matrix_privs:</b>';
+            dmp($this->privs);
+            echo '<b>adi_matrix added priv sets ($txp_permissions):</b>'.br;
+
+            foreach ($txp_permissions as $index => $value) {
+                if (strpos($index,'adi_matrix') === 0) {
+                    echo $index.' = '.$value.br;
+                }
+            }
+        }
     }
 
     // get matrix settings from database
@@ -1720,17 +1726,16 @@ END_SCRIPT
     // article data validation
     public function validate_post_data($adi_matrix_articles,$post_data)
     {
-        global $adi_matrix_validation_errors;
-
         // create array of empties indexed by $adi_matrix_validation_errors id
         $new_error_list = array();
-        foreach ($adi_matrix_validation_errors as $i => $v) {
+
+        foreach ($this->adi_matrix_validation_errors as $i => $v) {
             $new_error_list[$i] = array();
         }
 
         foreach ($post_data as $id => $data) {
             // add empty "error" slots for article
-            foreach ($adi_matrix_validation_errors as $i => $v) {
+            foreach ($this->adi_matrix_validation_errors as $i => $v) {
                 $new_error_list[$i][$id] = array();
             }
 
@@ -2392,7 +2397,7 @@ END_SCRIPT
     // a matrix tab
     public function matrix_matrix($event,$step)
     {
-        global $prefs, $adi_matrix_list, $adi_matrix_articles, $adi_matrix_cfs, $adi_matrix_validation_errors, $adi_matrix_article_defaults;
+        global $prefs, $adi_matrix_list, $adi_matrix_articles, $adi_matrix_cfs, $adi_matrix_article_defaults;
 
         $sort_options = $this->get_sort_options();
         $sort_types = $this->get_sort_types();
@@ -2400,14 +2405,6 @@ END_SCRIPT
 
         // extract matrix index from event (e.g. adi_matrix_matrix_0 => 0)
         $matrix_index = str_replace('adi_matrix_matrix_', '', $event);
-
-        // bomb out if upgrade needed
-        $upgrade_required = $this->upgrade();
-
-        if ($upgrade_required) {
-            pagetop($adi_matrix_list[$matrix_index]['name'], array(gTxt('adi_matrix_upgrade_required'), E_WARNING));
-            return;
-        }
 
         // current sort settings (read from user pref, default to matrix settings)
         list($sort, $dir, $sort_type) = explode(',', get_pref($event . '_sort', $adi_matrix_list[$matrix_index]['sort'] . ',' . $adi_matrix_list[$matrix_index]['dir'] . ',' . $adi_matrix_list[$matrix_index]['sort_type']));
@@ -2498,8 +2495,10 @@ END_SCRIPT
             if ($errors) {
                 $message .= '. '.gTxt('adi_matrix_validation_error');
 
-                foreach ($errors as $i => $v)
-                    $message .= ' '.$adi_matrix_validation_errors[$i].' ('.implode(',',array_keys($v)).')';
+                foreach ($errors as $i => $v) {
+                    $message .= ' '.$this->adi_matrix_validation_errors[$i].' ('.implode(',',array_keys($v)).')';
+                }
+
                 $message = array($message,E_WARNING);
             }
         } elseif ($step == 'delete') {
@@ -2533,8 +2532,9 @@ END_SCRIPT
             echo 'START ARTICLE MATRIX DUMP'.br;
 
             foreach ($rows as $i => $a) {
-                foreach ($a as $f => $d)
+                foreach ($a as $f => $d) {
                     echo htmlentities("$f=$d,");
+                }
                 echo br;
             }
 
@@ -2741,16 +2741,16 @@ END_SCRIPT
     // $event:  "plugin_lifecycle.adi_matrix"
     // $step:   "installed", "enabled", disabled", "deleted"
     // TXP 4.5: upgrade/reinstall only triggers "installed" event (now have to manually detect whether upgrade required)
-    public function lifecycle($event,$step)
+    public function lifecycle($event, $step)
     {
         $result = '?';
+        $upgrade = false;
 
-        // set upgrade flag if upgrading/reinstalling in TXP 4.5+
-        $upgrade = (($step == "installed") && $this->installed());
-
-        if ($step == 'enabled') {
+        if ($step === 'installed') {
+            $upgrade = $this->installed() && $this->upgrade();
+        } elseif ($step === 'enabled' || $step === 'loaded') {
             $result = $upgrade = $this->install();
-        } elseif ($step == 'deleted') {
+        } elseif ($step === 'deleted') {
             $result = $this->uninstall();
         }
 
@@ -2766,124 +2766,203 @@ END_SCRIPT
     // check/perform upgrade
     public function upgrade($do_upgrade=false)
     {
-        $upgrade_required = false;
-        // version 0.2
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'article_image'",$this->debug); // find out if column exists
-        $a = nextRow($rs);
-        $v0_2 = empty($a);
-        $upgrade_required = $upgrade_required || $v0_2;
-        // version 0.3
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'criteria_timestamp'",$this->debug);
-        $a = nextRow($rs);
-        $v0_3t = empty($a);
-        $upgrade_required = $upgrade_required || $v0_3t;
-        // version 0.3
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'criteria_expiry'",$this->debug);
-        $a = nextRow($rs);
-        $v0_3e = empty($a);
-        $upgrade_required = $upgrade_required || $v0_3e;
-        // version 1.0
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'scroll'",$this->debug);
-        $a = nextRow($rs);
-        $v1_0 = empty($a);
-        $upgrade_required = $upgrade_required || $v1_0;
-        // version 1.1
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'footer'",$this->debug);
-        $a = nextRow($rs);
-        $v1_1 = empty($a);
-        $upgrade_required = $upgrade_required || $v1_1;
-        // version 2.0
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'title'",$this->debug);
-        $a = nextRow($rs);
-        $v2_0 = empty($a);
-        $upgrade_required = $upgrade_required || $v2_0;
-        // version 2.1
-        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'ordinal'",$this->debug);
-        $a = nextRow($rs);
-        $v2_1 = empty($a);
-        $upgrade_required = $upgrade_required || $v2_1;
-        // version 3.0
-        $ipmethod = safe_field('event', 'txp_prefs', "name = 'adi_matrix_article_highlighting'", $this->debug);
-        $v3_0 = $ipmethod === 'adi_matrix_admin';
-        $upgrade_required = $upgrade_required || $v3_0;
+        static $upgrade_required = null;
+
+        if ($upgrade_required === null) {
+            $upgrade_required = array();
+
+            // version 0.2
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'article_image'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v0_2'] = true;
+            }
+
+            // version 0.3t
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'criteria_timestamp'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v0_3t'] = true;
+            }
+
+            // version 0.3e
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'criteria_expiry'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v0_3e'] = true;
+            }
+
+            // version 1.0
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'scroll'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v1_0'] = true;
+            }
+
+            // version 1.1
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'footer'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v1_1'] = true;
+            }
+
+            // version 2.0
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'title'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v2_0'] = true;
+            }
+
+            // version 2.1
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'ordinal'", $this->debug);
+
+            if (empty(nextRow($rs))) {
+                $upgrade_required['v2_1'] = true;
+            }
+
+            // version 3.0
+            $ipmethod = safe_field('event', 'txp_prefs', "name = 'adi_matrix_article_highlighting'", $this->debug);
+
+            if ($ipmethod === 'adi_matrix_admin') {
+                $upgrade_required['v3_0'] = true;
+            }
+        }
 
         if ($do_upgrade && $upgrade_required) {
             $res = true;
-            if ($v0_2) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `article_image` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
+
+            if (array_key_exists('v0_2', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `article_image` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v0_2']);
+                }
             }
-            if ($v0_3t) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_timestamp` VARCHAR(16) NOT NULL DEFAULT 'any'",$this->debug);
+
+            if (array_key_exists('v0_3t', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `criteria_timestamp` VARCHAR(16) NOT NULL DEFAULT 'any'", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v0_3t']);
+                }
             }
-            if ($v0_3e) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_expiry` INT(2) NOT NULL DEFAULT '0'",$this->debug);
+
+            if (array_key_exists('v0_3e', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `criteria_expiry` INT(2) NOT NULL DEFAULT '0'", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v0_3e']);
+                }
             }
-            if ($v1_0) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `scroll` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `category1` VARCHAR(128) NOT NULL DEFAULT ''",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `category2` VARCHAR(128) NOT NULL DEFAULT ''",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `dir` VARCHAR(32) NOT NULL DEFAULT '1'",$this->debug);
+
+            if (array_key_exists('v1_0', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `scroll` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+
+                try {
+                    $res = $res && safe_alter('adi_matrix', "ADD `category1` VARCHAR(128) NOT NULL DEFAULT ''", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `category2` VARCHAR(128) NOT NULL DEFAULT ''", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `dir` VARCHAR(32) NOT NULL DEFAULT '1'", $this->debug);
+                } catch (\Exception $e) {
+                    // Don't care: column already exists;
+                }
+
                 // convert old `sort` to new `sort` & `dir`
                 //  OLD sort=1 (Posted desc)    ->  NEW sort=1, dir=1
                 //  OLD sort=2 (Posted asc)     ->  NEW sort=1, dir=2
                 //  OLD sort=3 (Title)          ->  NEW sort=2, dir=''
                 //  OLD sort=4 (LastMod desc)   ->  NEW sort=3, dir=1
                 //  OLD sort=5 (LastMod asc)    ->  NEW sort=3, dir=2
-                $res = $res && safe_update('adi_matrix',"`dir` = '1'","`sort` IN ('1','4')",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`dir` = '2'","`sort` IN ('2','5')",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = '1'","`sort` = '2'",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = '2'","`sort` = '3'",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = '3'","`sort` IN ('4','5')",$this->debug);
+                $res = $res && safe_update('adi_matrix', "`dir` = '1'","`sort` IN ('1','4')", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`dir` = '2'","`sort` IN ('2','5')", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = '1'","`sort` = '2'", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = '2'","`sort` = '3'", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = '3'","`sort` IN ('4','5')", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v1_0']);
+                }
             }
-            if ($v1_1) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `footer` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `sort_type` VARCHAR(32) NOT NULL DEFAULT 'alphabetical'",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `posted` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `expires` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_descendent_cats` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
+
+            if (array_key_exists('v1_1', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `footer` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+
+                try {
+                    $res = $res && safe_alter('adi_matrix', "ADD `sort_type` VARCHAR(32) NOT NULL DEFAULT 'alphabetical'", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `posted` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `expires` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `criteria_descendent_cats` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                } catch (\Exception $e) {
+                    // Don't care: column already exists;
+                }
+
                 // one day sort will be sorted
                 //  OLD sort=1, NEW sort='posted'
                 //  OLD sort=2, NEW sort='title',
                 //  OLD sort=3, NEW sort='lastmod',
                 //  OLD sort=4, NEW sort='expires',
-                $res = $res && safe_update('adi_matrix',"`sort` = 'posted'","`sort` = '1'",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = 'title'","`sort` = '2'",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = 'lastmod'","`sort` = '3'",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort` = 'expires'","`sort` = '4'",$this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = 'posted'","`sort` = '1'", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = 'title'","`sort` = '2'", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = 'lastmod'","`sort` = '3'", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort` = 'expires'","`sort` = '4'", $this->debug);
                 // sort_type "+ 0 asc/desc" now "numerical"
-                $res = $res && safe_update('adi_matrix',"`sort_type` = 'alphabetical'","`dir` IN ('1','2')",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`sort_type` = 'numerical'","`dir` IN ('3','4')",$this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort_type` = 'alphabetical'","`dir` IN ('1','2')", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`sort_type` = 'numerical'","`dir` IN ('3','4')", $this->debug);
                 // sort direction
-                $res = $res && safe_update('adi_matrix',"`dir` = 'desc'","`dir` IN ('1','4')",$this->debug);
-                $res = $res && safe_update('adi_matrix',"`dir` = 'asc'","`dir` IN ('2','3')",$this->debug);
+                $res = $res && safe_update('adi_matrix', "`dir` = 'desc'","`dir` IN ('1','4')", $this->debug);
+                $res = $res && safe_update('adi_matrix', "`dir` = 'asc'","`dir` IN ('2','3')", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v1_1']);
+                }
             }
-            if ($v2_0) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `title` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `publish` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `show_section` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `cf_links` VARCHAR(128) NOT NULL DEFAULT ''",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `tab` VARCHAR(16) NOT NULL DEFAULT 'content'",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `section` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `criteria_condition` VARCHAR(255) NOT NULL DEFAULT ''",$this->debug);
-                $res = $res && safe_delete('txp_prefs',"name='adi_matrix_article_limit'",$this->debug); // made redundant by paging
+
+            if (array_key_exists('v2_0', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `title` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+
+                try {
+                    $res = $res && safe_alter('adi_matrix', "ADD `publish` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `show_section` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `cf_links` VARCHAR(128) NOT NULL DEFAULT ''", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `tab` VARCHAR(16) NOT NULL DEFAULT 'content'", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `section` TINYINT(1) DEFAULT 0 NOT NULL", $this->debug);
+                    $res = $res && safe_alter('adi_matrix', "ADD `criteria_condition` VARCHAR(255) NOT NULL DEFAULT ''", $this->debug);
+                } catch (\Exception $e) {
+                    // Don't care: column already exists;
+                }
+
+                $res = $res && safe_delete('txp_prefs', "name='adi_matrix_article_limit'", $this->debug); // made redundant by paging
+
+                if ($res) {
+                    unset($upgrade_required['v2_0']);
+                }
             }
-            if ($v2_1) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." ADD `ordinal` VARCHAR(32) DEFAULT 1 NULL AFTER `id`",$this->debug);
+
+            if (array_key_exists('v2_1', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "ADD `ordinal` VARCHAR(32) DEFAULT 1 NULL AFTER `id`", $this->debug);
+
+                if ($res) {
+                    unset($upgrade_required['v2_1']);
+                }
             }
-            if ($v3_0) {
-                $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `scroll`",$this->debug);
+
+            if (array_key_exists('v3_0', $upgrade_required)) {
+                $res = $res && safe_alter('adi_matrix', "DROP `scroll`", $this->debug);
 
                 $allprefs = $this->get_prefs();
 
                 foreach ($allprefs as $pref => $opts) {
                     $res = $res && safe_update('txp_prefs', "event='adi_matrix', type='".(empty($opts['type']) ? PREF_PLUGIN : doSlash($opts['type'])) ."'", "name='" . doSlash($pref) . "'");
                 }
+
+                if ($res) {
+                    unset($upgrade_required['v3_0']);
+                }
             }
 
             return $res;
         } else {
             // report back only
-            return $upgrade_required;
+            return !empty($upgrade_required);
         }
     }
 
@@ -2891,14 +2970,14 @@ END_SCRIPT
     public function downgrade()
     {
         $res = true;
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `title`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `publish`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `show_section`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `cf_links`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `tab`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `section`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `criteria_condition`",$this->debug);
-        $res = $res && safe_query("ALTER TABLE ".safe_pfx("adi_matrix")." DROP `ordinal`",$this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `title`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `publish`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `show_section`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `cf_links`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `tab`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `section`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `criteria_condition`", $this->debug);
+        $res = $res && safe_alter('adi_matrix', "DROP `ordinal`", $this->debug);
 
         return $res;
     }
@@ -3780,52 +3859,40 @@ END_SCRIPT
         global $adi_matrix_cfs,$prefs,$txp_permissions, $txp_user;
 
         $message = '';
-        $installed = $this->installed();
         $matrix_prefs = $this->get_prefs();
 
-        if ($installed) {
-            $upgrade_required = $this->upgrade();
+        // custom field musical chairs
+        $cfs_fiddled = false;
 
-            if ($upgrade_required) {
-                $message = array(gTxt('adi_matrix_upgrade_required'),E_WARNING);
-            } else {
-                // custom field musical chairs
-                $cfs_fiddled = false;
+        // add additional custom fields that may have suddenly appeared (glz_cfs: custom_11+)
+        foreach ($adi_matrix_cfs as $index => $value) {
+            $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'custom_$index'",$this->debug); // find out if column exists
+            $a = nextRow($rs);
 
-                // add additional custom fields that may have suddenly appeared (glz_cfs: custom_11+)
-                foreach ($adi_matrix_cfs as $index => $value) {
-                    $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'custom_$index'",$this->debug); // find out if column exists
-                    $a = nextRow($rs);
-
-                    if (empty($a)) {
-                        safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." ADD `custom_$index` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
-                        $cfs_fiddled = true;
-                    }
-                }
-
-                // remove custom fields that may have been deleted in glz_cfs
-                $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'custom%'",$this->debug);
-                $current_cfs = array();
-
-                while ($a = nextRow($rs)) { // get list of cf indexes from adi_matrix
-                    $index = substr($a['Field'],7); // strip 'custom_' from 'custom_x'
-                    $current_cfs[$index] = true;
-                }
-
-                foreach ($current_cfs as $index => $value) {
-                    if (!array_key_exists($index,$adi_matrix_cfs)) {
-                        safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." DROP COLUMN `custom_$index`",$this->debug);
-                        $cfs_fiddled = true;
-                    }
-
-                }
-
-                if ($cfs_fiddled) {
-                    $message = gTxt('adi_matrix_cfs_modified');
-                }
+            if (empty($a)) {
+                safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." ADD `custom_$index` TINYINT(1) DEFAULT 0 NOT NULL",$this->debug);
+                $cfs_fiddled = true;
             }
-        } else {
-            $message = array(gTxt('adi_matrix_not_installed'),E_ERROR);
+        }
+
+        // remove custom fields that may have been deleted in glz_cfs
+        $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('adi_matrix')." LIKE 'custom%'",$this->debug);
+        $current_cfs = array();
+
+        while ($a = nextRow($rs)) { // get list of cf indexes from adi_matrix
+            $index = substr($a['Field'],7); // strip 'custom_' from 'custom_x'
+            $current_cfs[$index] = true;
+        }
+
+        foreach ($current_cfs as $index => $value) {
+            if (!array_key_exists($index,$adi_matrix_cfs)) {
+                safe_query("ALTER TABLE ".safe_pfx('adi_matrix')." DROP COLUMN `custom_$index`",$this->debug);
+                $cfs_fiddled = true;
+            }
+        }
+
+        if ($cfs_fiddled) {
+            $message = gTxt('adi_matrix_cfs_modified');
         }
 
         // admin $step aerobics
@@ -3841,108 +3908,102 @@ END_SCRIPT
         // generate page
         pagetop(gTxt('adi_matrix_admin'),$message);
 
-        $installed = $this->installed();
+        $adi_matrix_list = $this->read_settings(false);
 
-        if ($installed && !$upgrade_required) {
-            $adi_matrix_list = $this->read_settings(false);
+        // tack 'new' index onto end of $matrix_list (field defaults for adding new matrix)
+        $adi_matrix_list['new'] = array(
+            'name' => '',
+            'ordinal' => '',
+            'sort' => 'posted',
+            'dir' => 'desc',
+            'sort_type' => 'alphabetical',
+            'user' => $txp_user,
+            'privs' => '',
+            'footer' => '0',
+            'title' => '0',
+            'publish' => '0',
+            'show_section' => '0',
+            'cf_links' => '',
+            'tab' => '0',
+            'criteria_section' => '',
+            'criteria_category' => '',
+            'criteria_descendent_cats' => '0',
+            'criteria_status' => '0',
+            'criteria_author' => '',
+            'criteria_keywords' => '',
+            'criteria_timestamp' => '',
+            'criteria_expiry' => '',
+            'criteria_condition' => '',
+            'status' => '0',
+            'keywords' => '0',
+            'article_image' => '0',
+            'category1' => '0',
+            'category2' => '0',
+            'posted' => '0',
+            'expires' => '0',
+            'section' => '0'
+        );
 
-            // tack 'new' index onto end of $matrix_list (field defaults for adding new matrix)
-            $adi_matrix_list['new'] = array(
-                'name' => '',
-                'ordinal' => '',
-                'sort' => 'posted',
-                'dir' => 'desc',
-                'sort_type' => 'alphabetical',
-                'user' => $txp_user,
-                'privs' => '',
-                'footer' => '0',
-                'title' => '0',
-                'publish' => '0',
-                'show_section' => '0',
-                'cf_links' => '',
-                'tab' => '0',
-                'criteria_section' => '',
-                'criteria_category' => '',
-                'criteria_descendent_cats' => '0',
-                'criteria_status' => '0',
-                'criteria_author' => '',
-                'criteria_keywords' => '',
-                'criteria_timestamp' => '',
-                'criteria_expiry' => '',
-                'criteria_condition' => '',
-                'status' => '0',
-                'keywords' => '0',
-                'article_image' => '0',
-                'category1' => '0',
-                'category2' => '0',
-                'posted' => '0',
-                'expires' => '0',
-                'section' => '0'
-            );
-
-            foreach ($adi_matrix_cfs as $index => $value) {
-                // add custom fields to $matrix_list['new']
-                $adi_matrix_list['new']['custom_'.$index] = '0';
-            }
-
-            // @todo pref to control if it selects last edited, or always defaults to new?
-
-            $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
-            $matrix_select = inputLabel(
-                'matrix_id',
-                selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id'),
-                'adi_matrix_select'
-            );
-
-            // output table & input form
-            echo $matrix_select
-                .form(
-                    $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
-                    .eInput('adi_matrix_admin')
-                    .sInput('update')
-                    ,''
-                    ,''
-                    ,'post'
-                    ,'adi_matrix_admin'
-                    ,''
-                    ,'adi_matrix_admin_form'
-                )
-                .n
-                .graf(
-                    fInput('submit', array(
-                        'name' => 'do_something',
-                        'class' => 'publish',
-                        'form' => 'adi_matrix_admin_form',
-                        ),
-                        gTxt('save'))
-                , 'txp-edit-actions');
+        foreach ($adi_matrix_cfs as $index => $value) {
+            // add custom fields to $matrix_list['new']
+            $adi_matrix_list['new']['custom_'.$index] = '0';
         }
+
+        // @todo pref to control if it selects last edited, or always defaults to new?
+
+        $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
+        $matrix_select = inputLabel(
+            'matrix_id',
+            selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id'),
+            'adi_matrix_select'
+        );
+
+        // output table & input form
+        echo $matrix_select
+            .form(
+                $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
+                .eInput('adi_matrix_admin')
+                .sInput('update')
+                ,''
+                ,''
+                ,'post'
+                ,'adi_matrix_admin'
+                ,''
+                ,'adi_matrix_admin_form'
+            )
+            .n
+            .graf(
+                fInput('submit', array(
+                    'name' => 'do_something',
+                    'class' => 'publish',
+                    'form' => 'adi_matrix_admin_form',
+                    ),
+                    gTxt('save'))
+            , 'txp-edit-actions');
 
         if ($this->debug) {
             echo "<b>Event:</b> ".$event.", <b>Step:</b> ".$step.br.br;
             echo '<b>$_POST:</b>';
             dmp($_POST);
 
-            if ($installed) {
-                $sort_options = $this->get_sort_options();
+            $sort_options = $this->get_sort_options();
 
-                echo '<b>PREFS:</b>'.br;
-                foreach ($matrix_prefs as $name => $this_pref)
-                    echo $name.' = '.$this->get_pref($name).br;
-                echo br;
-                echo '<b>$adi_matrix_list:</b>';
-                dmp($this->read_settings());
-                echo '<b>$adi_matrix_sort_options:</b>';
-                dmp($sort_options);
-                echo '<b>$adi_matrix_cfs:</b>';
-                dmp($adi_matrix_cfs);
-                echo '<b>glz_custom_fields plugin:</b> is';
+            echo '<b>PREFS:</b>'.br;
+            foreach ($matrix_prefs as $name => $this_pref)
+                echo $name.' = '.$this->get_pref($name).br;
+            echo br;
+            echo '<b>$adi_matrix_list:</b>';
+            dmp($this->read_settings());
+            echo '<b>$adi_matrix_sort_options:</b>';
+            dmp($sort_options);
+            echo '<b>$adi_matrix_cfs:</b>';
+            dmp($adi_matrix_cfs);
+            echo '<b>glz_custom_fields plugin:</b> is';
 
-                if (!$this->has_glz_cf) {
-                    echo ' NOT';
-                }
-                echo ' installed'.br;
+            if (!$this->has_glz_cf) {
+                echo ' NOT';
             }
+            echo ' installed'.br;
         }
 
     }
