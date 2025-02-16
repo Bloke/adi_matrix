@@ -116,7 +116,7 @@ adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
 adi_matrix_privs => Role
-adi_matrix_scroll => Scroll
+adi_matrix_scroll => Sticky scroll
 adi_matrix_select => Select matrix
 adi_matrix_show_section => Show section
 adi_matrix_sort => Sort by
@@ -367,16 +367,15 @@ class adi_matrix
  .adi_matrix_timestamp div { margin-block-end: .25em}
  .adi_matrix_edit_link { margin-inline-start: .25em}
 @media (min-width: 47em) {
-  .adi_matrix_matrix thead th:first-child,
-  .adi_matrix_matrix tbody td:first-child {
+  .adi_matrix_matrix .static thead th:first-child,
+  .adi_matrix_matrix .static tbody td:first-child {
     position: sticky;
     inset-inline-start: 0;
     z-index: 1;
-    background-color: hsl(0 5% 97% / .8)
+    background-color: var(--txp-primary-back, hsl(0 5% 97% / .8))
   }
   .adi_matrix_matrix tbody td:first-child {
     white-space: nowrap;
-    background-color: var(--txp-primary-back, hsl(0 5% 97% / .8))
   }
 }
 /* glz_custom_fields */
@@ -2555,7 +2554,7 @@ END_SCRIPT
         echo tag(
             form(
                 tag($adi_matrix_list[$matrix_index]['name'], 'h1', array('class' => 'txp_heading'))
-                .'<div class="txp-listtables" tabindex="0" aria-label="List">'
+                .'<div class="txp-listtables'.($adi_matrix_list[$matrix_index]['scroll'] ? ' static' : '').'" tabindex="0" aria-label="List">'
                 .startTable('', '', $class)
                 .$table
                 .endTable()
