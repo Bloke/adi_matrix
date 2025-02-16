@@ -116,6 +116,7 @@ adi_matrix_ok => OK
 adi_matrix_one_category => One category
 adi_matrix_any_parent_category => Any parent category
 adi_matrix_privs => Role
+adi_matrix_scroll => Scroll
 adi_matrix_select => Select matrix
 adi_matrix_show_section => Show section
 adi_matrix_sort => Sort by
@@ -373,13 +374,9 @@ class adi_matrix
     z-index: 1;
     background-color: hsl(0 5% 97% / .8)
   }
-  .adi_matrix_matrix tbody td:first-child { white-space: nowrap; }
-
-  @media screen and (prefers-color-scheme:dark) {
-    .adi_matrix_matrix thead th:first-child,
-    .adi_matrix_matrix tbody td:first-child {
-      background-color: hsl(0 5% 15% / .8)
-    }
+  .adi_matrix_matrix tbody td:first-child {
+    white-space: nowrap;
+    background-color: var(--txp-primary-back, hsl(0 5% 97% / .8))
   }
 }
 /* glz_custom_fields */
@@ -561,7 +558,7 @@ END_SCRIPT
 
                 // load in the rest
                 if (!$just_the_basics) {
-                    $the_rest = array('sort','dir','sort_type','footer','title','publish','show_section','cf_links','criteria_section','criteria_category','criteria_descendent_cats','criteria_status','criteria_author','criteria_keywords','criteria_timestamp','criteria_expiry','criteria_condition','status','keywords','article_image','category1','category2','posted','expires','section');
+                    $the_rest = array('sort','dir','sort_type','scroll','footer','title','publish','show_section','cf_links','criteria_section','criteria_category','criteria_descendent_cats','criteria_status','criteria_author','criteria_keywords','criteria_timestamp','criteria_expiry','criteria_condition','status','keywords','article_image','category1','category2','posted','expires','section');
 
                     foreach ($the_rest as $item) {
                         $matrix_list[$id][$item] = $$item;
@@ -2685,6 +2682,7 @@ END_SCRIPT
                 `user` VARCHAR(64) NOT NULL DEFAULT '',
                 `privs` VARCHAR(16) NOT NULL DEFAULT '',
                 `footer` TINYINT(1) DEFAULT 0 NOT NULL,
+                `scroll` TINYINT(1) DEFAULT 0 NOT NULL,
                 `title` TINYINT(1) DEFAULT 0 NOT NULL,
                 `publish` TINYINT(1) DEFAULT 0 NOT NULL,
                 `show_section` TINYINT(1) DEFAULT 0 NOT NULL,
@@ -2946,8 +2944,6 @@ END_SCRIPT
             }
 
             if (array_key_exists('v3_0', $upgrade_required)) {
-                $res = $res && safe_alter('adi_matrix', "DROP `scroll`", $this->debug);
-
                 $allprefs = $this->get_prefs();
 
                 foreach ($allprefs as $pref => $opts) {
@@ -3470,6 +3466,7 @@ END_SCRIPT
                     ."sort_type='".doSlash($data['sort_type'])."', "
                     ."user='".doSlash($data['user'])."', "
                     ."privs='".doSlash($data['privs'])."', "
+                    ."scroll='".doSlash($data['scroll'])."', "
                     ."footer='".doSlash($data['footer'])."', "
                     ."publish='".doSlash($data['publish'])."', "
                     ."show_section='".doSlash($data['show_section'])."', "
@@ -3559,6 +3556,7 @@ END_SCRIPT
                         .inputLabel($fieldRef."[sort_type]", selectInput($fieldRef."[sort_type]", $sort_types, $matrix['sort_type'],false), 'adi_matrix_sort_type')
                         .inputLabel($fieldRef."[user]", $this->user_popup($fieldRef."[user]", $matrix['user']), 'adi_matrix_user')
                         .inputLabel($fieldRef."[privs]", $this->privs_popup($fieldRef."[privs]",$matrix['privs']), 'adi_matrix_privs')
+                        .inputLabel($fieldRef."[scroll]", yesnoRadio($fieldRef."[scroll]", $matrix['scroll']), 'adi_matrix_scroll')
                         .inputLabel($fieldRef."[footer]", yesnoRadio($fieldRef."[footer]", $matrix['footer']), 'adi_matrix_footer')
                         .inputLabel($fieldRef."[show_section]", yesnoRadio($fieldRef."[show_section]", $matrix['show_section']), 'adi_matrix_show_section')
                         .hInput($fieldRef."[cf_links]", '') //.inputLabel($fieldRef."[cf_links]", yesnoRadio($fieldRef."[cf_links]", $matrix['cf_links']), 'adi_matrix_cf_links')
@@ -3919,6 +3917,7 @@ END_SCRIPT
             'sort_type' => 'alphabetical',
             'user' => $txp_user,
             'privs' => '',
+            'scroll' => '0',
             'footer' => '0',
             'title' => '0',
             'publish' => '0',
