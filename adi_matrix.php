@@ -328,7 +328,12 @@ class adi_matrix
 .adi_matrix_field p { min-height:1.2em }
 .adi_matrix_field p > span { float:left; width:8em } /* pseudo label */
 .adi_matrix_custom_field label { width:12em }
-.adi_matrix_admin_delete { position: absolute; right: 1.4em; z-index:10 }
+.adi_matrix_admin_delete { position: absolute; inset-inline-end: 1em; inset-block-start: -.5em }
+.adi_matrix_row {
+  position: relative;
+  border-top: 1px solid var(--txp-border-light, hsl(0 0% 82%));
+  padding-block-start: 1em;
+}
 @media (min-width: 47em) {
   .adi_matrix_row {
     display: flex;
@@ -2569,7 +2574,7 @@ END_SCRIPT
                         .fInput("submit", "do_something", gTxt('save'), "publish")
                         .eInput("adi_matrix_matrix_".$matrix_index).sInput("update"),
                         'div',
-                        ' class="adi_matrix_button"'
+                        ' class="adi_matrix_button multi-edit"'
                     )
                     : ''
                 )
@@ -2635,7 +2640,7 @@ END_SCRIPT
                 // "num articles per page" select
                 .($this->is_txp470 ? Txp::get('\Textpattern\Admin\Paginator', $event, $step)->render($pageby) : pageby_form($event, $pageby))
                 ,'div'
-                ,' id="list_navigation" class="txp-navigation"'
+                ,' id="list_navigation" class="txp-layout-cell-row txp-navigation"'
             );
 
         if ($this->debug) {
