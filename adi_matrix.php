@@ -3232,7 +3232,8 @@ END_SCRIPT
 
         $out =
             tag(
-                $this->matrix_tsi($name.'[year]','%Y',$ts,'',$type)
+                tag(gTxt('date'), 'label', array('for' => $name.'[year]'))
+                .$this->matrix_tsi($name.'[year]','%Y',$ts,'',$type)
                 .' /'
                 .$this->matrix_tsi($name.'[month]','%m',$ts,'',$type)
                 .' /'
@@ -3241,7 +3242,8 @@ END_SCRIPT
                 ,' class="date'.$class.'"'
             )
             .tag(
-                $this->matrix_tsi($name.'[hour]','%H',$ts,'',$type)
+                tag(gTxt('time'), 'label', array('for' => $name.'[hour]'))
+                .$this->matrix_tsi($name.'[hour]','%H',$ts,'',$type)
                 .' :'
                 .$this->matrix_tsi($name.'[minute]','%M',$ts,'',$type)
                 .' :'
@@ -3270,6 +3272,8 @@ END_SCRIPT
         return
             n
             .'<input type="text" name="'.$name
+            .'" id="'
+            .$name
             .'" value="'
             .$s
             .'" size="'
