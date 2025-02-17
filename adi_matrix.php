@@ -2645,7 +2645,7 @@ END_SCRIPT
                 // set empty step (to avoid confusion), coz default is "list"
                 .($total > $pageby ? nav_form($event, $page, $num_pages, $sort, $dir, '', '', $total, $pageby, '') : '')
                 ,'div'
-                ,' id="list_navigation" class="txp-layout-cell-row txp-navigation"'
+                ,' id="list_navigation" class="txp-layout-cell-row"'
             );
 
         if ($this->debug) {
