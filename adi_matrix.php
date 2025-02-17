@@ -99,7 +99,7 @@ adi_matrix_has_expiry => Has expiry
 adi_matrix_include_descendent_cats => Include descendent categories
 adi_matrix_invalid_timestamp => Invalid timestamp
 adi_matrix_logged_in_user => Logged in user
-adi_matrix_admin => Article Matrix Admin
+adi_matrix_admin => Matrix Administration
 adi_matrix_total_articles => Total articles in matrix:
 adi_matrix_cfs_modified => Custom field list modified
 adi_matrix_delete_fail => Matrix delete failed
@@ -414,7 +414,10 @@ EOCSS;
     {
         echo script_js(<<<END_SCRIPT
 $(function() {
-    var adi_matrix_last_edited = localStorage.getItem('adi_matrix_selected');
+    let adi_matrix_urlparams = new URLSearchParams(document.location.search);
+    let adi_matrix_urlsel = adi_matrix_urlparams.get('adi_matrix_selected');
+
+    var adi_matrix_last_edited = adi_matrix_urlsel || localStorage.getItem('adi_matrix_selected');
 
     if ($("#matrix_id option[value='"+adi_matrix_last_edited+"']").length == 0) {
         adi_matrix_last_edited = 'new';
@@ -2542,8 +2545,8 @@ END_SCRIPT
             echo 'END ARTICLE MATRIX DUMP'.br;
         }
 
-        // generate page
-        pagetop($adi_matrix_list[$matrix_index]['name'],$message);
+        // generate matrix page
+        pagetop($adi_matrix_list[$matrix_index]['name'], $message);
 
         // output matrix table & input form
         $table = $this->matrix_table($adi_matrix_articles, $matrix_index, $page, $errors, $updates);
@@ -2558,7 +2561,8 @@ END_SCRIPT
 
         echo tag(
             form(
-                tag($adi_matrix_list[$matrix_index]['name'], 'h1', array('class' => 'txp_heading'))
+                hed($adi_matrix_list[$matrix_index]['name'], '1', array('class' => 'txp-heading'))
+                .eLink('adi_matrix_admin', '', 'adi_matrix_selected', $matrix_index, gTxt('edit'))
                 .'<div class="txp-listtables'.($adi_matrix_list[$matrix_index]['scroll'] ? ' static' : '').'" tabindex="0" aria-label="List">'
                 .startTable('', '', $class)
                 .$table
@@ -3908,8 +3912,10 @@ END_SCRIPT
             $result ? $message = gTxt('adi_matrix_deleted') : $message = array(gTxt('adi_matrix_delete_fail'),E_ERROR);
         }
 
-        // generate page
-        pagetop(gTxt('adi_matrix_admin'),$message);
+        $adi_matrix_selected = gps('adi_matrix_selected');
+
+        // generate admin page
+        pagetop(gTxt('adi_matrix_admin'), $message);
 
         $adi_matrix_list = $this->read_settings(false);
 
@@ -3953,17 +3959,15 @@ END_SCRIPT
             $adi_matrix_list['new']['custom_'.$index] = '0';
         }
 
-        // @todo pref to control if it selects last edited, or always defaults to new?
-
         $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
-        $matrix_select = inputLabel(
-            'matrix_id',
-            selectInput('matrix_id', $matrix_defined, 'new', false, false, 'matrix_id'),
-            'adi_matrix_select'
-        );
+        $matrix_select = tag(
+            tag(gTxt('adi_matrix_select'), 'label', array('for' => 'matrix_id'))
+            .selectInput('matrix_id', $matrix_defined, ($adi_matrix_selected ? $adi_matrix_selected : 'new'), false, false, 'matrix_id')
+        , 'div', array('class' => 'txp-control-panel'));
 
         // output table & input form
-        echo $matrix_select
+        echo hed(gTxt('adi_matrix_admin'), 1, array('class' => 'txp-heading'))
+            .$matrix_select
             .form(
                 $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
                 .eInput('adi_matrix_admin')
