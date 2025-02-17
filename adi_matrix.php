@@ -2635,10 +2635,11 @@ END_SCRIPT
 
         // paging
         echo tag(
-                // prev/next page buttons (if muliple pages)
-                ($total > $pageby ? nav_form($event, $page, $num_pages, $sort, $dir, '', '', $total, $pageby, '') : '') // set empty step (to avoid confusion), coz default is "list"
                 // "num articles per page" select
-                .($this->is_txp470 ? Txp::get('\Textpattern\Admin\Paginator', $event, $step)->render($pageby) : pageby_form($event, $pageby))
+                ($this->is_txp470 ? Txp::get('\Textpattern\Admin\Paginator', $event, $step)->render($pageby) : pageby_form($event, $pageby))
+                // prev/next page buttons (if muliple pages)
+                // set empty step (to avoid confusion), coz default is "list"
+                .($total > $pageby ? nav_form($event, $page, $num_pages, $sort, $dir, '', '', $total, $pageby, '') : '')
                 ,'div'
                 ,' id="list_navigation" class="txp-layout-cell-row txp-navigation"'
             );
@@ -3982,7 +3983,7 @@ END_SCRIPT
                     'form' => 'adi_matrix_admin_form',
                     ),
                     gTxt('save'))
-            , 'txp-edit-actions');
+            , array('class' => 'txp-edit-actions'));
 
         if ($this->debug) {
             echo "<b>Event:</b> ".$event.", <b>Step:</b> ".$step.br.br;
