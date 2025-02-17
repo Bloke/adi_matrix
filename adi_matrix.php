@@ -3721,7 +3721,7 @@ EOCFG;
     }
 
     // read or set pref
-    public function get_pref($name,$value=NULL,$private=false)
+    public function get_pref($name, $value=NULL, $private=false)
     {
         global $prefs;
 
@@ -3744,7 +3744,7 @@ EOCFG;
             }
 
             $evt = empty($matrix_prefs[$name]['collection']) ? 'adi_matrix' : array('adi_matrix', $matrix_prefs[$name]['collection']);
-            $type = empty($matrix_prefs[$name]['type']) ? PREF_PLUGIN : $matrix_prefs[$name]['type'];
+            $type = strpos($name, 'adi_matrix_matrix_') === 0 ? PREF_HIDDEN : (empty($matrix_prefs[$name]['type']) ? PREF_PLUGIN : $matrix_prefs[$name]['type']);
             $res = set_pref($name, $value, $evt, $type, $html, (empty($matrix_prefs[$name]['position']) ? 0 : $matrix_prefs[$name]['position']), $private);
             $prefs[$name] = get_pref($name, $value, true); //??? JUST USE THIS LINE?
 
