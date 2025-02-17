@@ -3218,11 +3218,11 @@ END_SCRIPT
         $resetcheck = '';
 
         if ($type === 'posted') {
-            $resetcheck = br.tag(gTxt('reset_time'), 'label', ' class="reset_time-now"')
-                .sp.checkbox($name.'[reset_time]', '1', '0');
+            $resetcheck = br.checkbox($name.'[reset_time]', '1', '0', '', $name.'[reset_time]')
+                .sp.tag(gTxt('reset_time'), 'label', array('class' => 'reset_time-now', 'for' => $name.'[reset_time]'));
         } elseif ($type === 'expires') {
-            $resetcheck = br.tag(gTxt('set_expire_now'), 'label', ' class="reset_expire-now"')
-            .sp.checkbox($name.'[expire_now]', '1', '0');
+            $resetcheck = br.checkbox($name.'[expire_now]', '1', '0', '', $name.'[expire_now]')
+                .sp.tag(gTxt('set_expire_now'), 'label', array('class' => 'reset_expire-now', 'for' => $name.'[expire_now]'));
         }
 
         $out =
