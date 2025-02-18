@@ -1,80 +1,91 @@
 h1. *adi_matrix* - Multi-article update tabs
 
-This plugin provides a way of viewing and updating multiple articles from a single TXP admin tab.
+This plugin provides a way of viewing and updating multiple articles in a grid, all from a single Txp admin tab.
 
-Matrixes give you a summary view of multiple articles, where you can make changes to selected data & update them all in one go.
+Matrices give you a summary view of multiple articles, where you can make changes to selected data & update them all in one go.
 
-Two new tabs do the work:
+Two new areas do the work:
 
-* adi_matrix admin tab under Extensions
-* article matrix tab(s) under Contents or Home
+* Admininstration panel under Extensions.
+* Article matrix panel(s) under Contents, Home or some other plugin-generated area.
 
-The admin tab defines the matrixes and the article matrix tabs display the required articles with their data.
+The admin tab defines the matrices, and the article matrix tabs display the required articles with their data.
 
 h2. *Installation*
 
 Installation of *adi_matrix* adds a new table to your Textpattern database which should not interfere with anything else.
 
-*adi_matrix* is designed to make changes to groups of article.  I suggest that you make backups before installation of this plugin and during initial testing on your site.  I can thoroughly recommend "rss_admin_db_manager":http://forum.textpattern.com/viewtopic.php?id=10395 to do database backups before installation.
+*adi_matrix* is designed to make changes to groups of articles. Make backups before installation of this plugin and during initial testing on your site.
 
-h2. *adi_matrix admin tab*
+h2. *adi_matrix admin panel*
 
-This is where you set up the article matrixes.  There are three aspects to this:
+This is where you set up the article matrices.  There are three aspects to this:
 
 h3. Matrix appearance
 
-Here you can:
+Here you can specify:
 
-* give the matrix a name (which will be used to list it under the Contents tab)
-* specify the order in which articles should be listed
-* specify whether a single user or all users are to get access to the matrix
-* specify whether access to the matrix is based on privileges or not
-* specify which tab to display the matrix under
-* permit users to add/delete articles
-* define how the matrix is laid out
+* The matrix name, which will be used to list it under your chosen area in the admin interface
+* The order in which the matrices appear in the menus. Use whatever numeric/alphabetic scheme you wish
+* The sort order in which articles should be listed by default
+* Whether a single user or all users are allowed access to the matrix
+* Whether access to the matrix is based on privilege roles or not
+* Which menu to display the matrix under
+* Whether the first (Title) column of the matrix should be 'sticky' when scrolling left/right on wider screens
+* Whether to show the column headings in the table footer
+* Whether to display the section in the matrix (overridden if you choose to include the Section in your matrix)
+* Whether users can add/delete articles ('Publish' option)
 
-h3. Article selection criteria
+*h3. Article selection criteria
 
-By default all articles will be listed in the matrix, but you can narrow it down according to:
+By default, all articles will be listed in the matrix, but you can narrow it down according to:
 
-* section
-* category
-* article status
-* author
-* keywords
-* posted & expires timestamps
-* custom WHERE clause condition
+* Section
+* Category / sub-category
+* Article status
+* Author
+* Keywords
+* Posted & expires timestamps
+* Custom WHERE clause condition
 
 h3. Article data display
 
-This is where you define what data the user can see and change. Article that can be viewed & updated in matrixes:
+This is where you define what data the user can see and change. Article fields that can be viewed & updated in matrices are:
 
-* article status
-* custom fields
-* article image
-* keywords
-* categories
-* posted & expires timestamps
-* title
-* section
+* Article status
+* Custom fields
+* Article image
+* Keywords
+* Categories
+* Posted & expires timestamps
+* Title
+* Section
 
-h3. Preferences
+h2. Plugin preferences
 
-* maximum number of articles to be listed
-* display article ID
-* article title highlighting (indicate future or expired articles)
-* article title tooltips (show ID, posted & expires timestamps in tooltip)
+Visit the Preferences panel to choose:
+
+* Whether to display the article ID in the matrix
+* Article title highlighting (indicate future or expired articles)
+* Article title tooltips (show ID, posted & expires timestamps in tooltip)
 * input field tooltips (show contents of input field in a tooltip)
+* Whether to use TinyMCE. Enabling this will reveal furtther options:
+** Path to jQuery UI script
+** Path to jQuery UI CSS file
+** The TinyMCE directory path where it's installed
+** Any configuration parameters you wish to pass to TinyMCE
 
 h2. *Getting started*
 
-A new matrix can be added in *adi_matrix* admin tab simply by entering its details into the blank spaces.  As a minimum, a matrix name needs to be provided.
+A new matrix can be added in *adi_matrix* admin tab simply by selecting the empty entry in the Matrix Select list and choosing its parameters. As a minimum, a matrix name needs to be provided.
 
-Once a matrix has been defined, it's settings can be changed at any time.  The new matrix will seen under the Contents or Home tabs after you have visited at least one other TXP tab (a hop is required so that the the tab contents are refreshed).
+Once a matrix has been defined, its settings can be changed at any time by selecting the relevant matrix from the dropdown list on the matrix admin panel.
 
-h2. *Article matrixes*
+Each matrix will be available under the chosen menu area after you have visited at least one other Txp tab (a hop is required so that the menu contents are refreshed).
 
-The matrix tabs show a number of articles, with their associated "data". If you are the article author or have sufficient overriding privileges then you can make changes to the data & update all articles with a single click.
+h2. *Article matrices*
+
+The matrix panels themselves show a number of articles, with their associated data. If you are the article author or have sufficient overriding privileges then you can make changes to the data & update all articles with a single click.
 
 Note that only articles where you have actually changed anything will be updated - together with their __Last Modified Date__ and __Author__.
 
@@ -86,12 +97,12 @@ h2. *glz_custom_fields*
 
 h2. *TinyMCE*
 
-If *glz_custom_fields* is installed you have the opportunity to use "TinyMCE":http://www.tinymce.com/ to edit textarea custom fields.  Note that TinyMCE must be installed separately.  To use it with *adi_matrix*, switch it on in the admin tab and fill in the configuration details.
+If *glz_custom_fields* is installed, you have the opportunity to use "TinyMCE":http://www.tinymce.com/ to edit textarea custom fields. Note that TinyMCE must be installed separately. To use it with *adi_matrix*, switch it on in the Preferences > Adi matrix area, and fill in the configuration details.
 
 h2. *Uninstalling adi_matrix*
 
 To uninstall *adi_matrix*, simply go to the Plugins tab and delete it.  No articles will be harmed in the process.
 
-h2(adi_extras). *Additional information*
+h2. *Additional information*
 
 p(adi_extras). Support and further information can be obtained from the "Textpattern support forum":http://forum.textpattern.com/viewtopic.php?id=35972.
