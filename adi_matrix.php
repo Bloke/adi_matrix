@@ -2835,9 +2835,9 @@ END_SCRIPT
             }
 
             // version 3.0
-            $ipmethod = safe_field('event', 'txp_prefs', "name = 'adi_matrix_article_highlighting'", $this->debug);
+            $ipmethod = safe_field('html', 'txp_prefs', "name = 'adi_matrix_tiny_mce_config'", $this->debug);
 
-            if ($ipmethod === 'adi_matrix_admin') {
+            if ($ipmethod === 'text_area') {
                 $upgrade_required['v3_0'] = true;
             }
         }
@@ -2965,6 +2965,8 @@ END_SCRIPT
                 foreach ($allprefs as $pref => $opts) {
                     $res = $res && safe_update('txp_prefs', "event='adi_matrix', type='".(empty($opts['type']) ? PREF_PLUGIN : doSlash($opts['type'])) ."'", "name='" . doSlash($pref) . "'");
                 }
+
+                $res = $res && safe_update('txp_prefs', "html = 'longtext_input'", "name='adi_matrix_tiny_mce_config'");
 
                 if ($res) {
                     unset($upgrade_required['v3_0']);
@@ -3374,7 +3376,7 @@ END_SCRIPT
                     $sortq = "sort='".doSlash($data['sort'])."', ";
                 }
 
-                // section
+                // section criteria
                 if (array_key_exists('criteria_section',$data)) {
                     $criteria_sectionq = "criteria_section='".implode(',',$data['criteria_section'])."', ";
                 } else {
@@ -3724,7 +3726,7 @@ EOCFG;
                 'value' => '../scripts/tiny_mce', 'html' => 'text_input', 'position' => 130, 'collection' => 'adi_matrix_tinymce',
             ),
             'adi_matrix_tiny_mce_config'      => array(
-                'value' => $tiny_mce_config_val, 'html' => 'text_area', 'position' => 140, 'collection' => 'adi_matrix_tinymce',
+                'value' => $tiny_mce_config_val, 'html' => 'longtext_input', 'position' => 140, 'collection' => 'adi_matrix_tinymce',
             ),
         );
 
