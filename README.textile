@@ -36,7 +36,7 @@ Here you can specify:
 * Whether to display the section in the matrix (overridden if you choose to include the Section in your matrix)
 * Whether users can add/delete articles ('Publish' option)
 
-*h3. Article selection criteria
+h3. Article selection criteria
 
 By default, all articles will be listed in the matrix, but you can narrow it down according to:
 
