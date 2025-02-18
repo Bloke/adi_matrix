@@ -2210,7 +2210,7 @@ END_SCRIPT
                 // keywords
                 if ($adi_matrix_list[$matrix_index]['keywords']) {
                     $has_privs ? // decide if user gets input fields or not
-                        $out .= tda('<textarea name="'.$prefix."[keywords]".'" cols="18" rows="5" class="mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $data['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"') :
+                        $out .= tda('<textarea name="'.$prefix."[keywords]".'" rows="3" class="code mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $data['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"') :
                         $out .= ($data['keywords'] ? tda($data['keywords'],' class="adi_matrix_field_keywords"') : tda(sp,' class="adi_matrix_field_keywords"'));
                 }
                 // category1
@@ -2366,7 +2366,7 @@ END_SCRIPT
 
         // keywords
         if ($adi_matrix_list[$matrix_index]['keywords']) {
-            $out .= tda('<textarea name="'.$prefix."[keywords]".'" cols="18" rows="5" class="mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $defaults['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"');
+            $out .= tda('<textarea name="'.$prefix."[keywords]".'" rows="3" class="code mceNoEditor">'.htmlspecialchars(str_replace(',' ,', ', $defaults['keywords'])).'</textarea>',' class="adi_matrix_field_keywords"');
         }
 
         // category1
