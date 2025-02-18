@@ -91,7 +91,7 @@ adi_matrix_custom_condition => Custom condition
 adi_matrix_cf_links => Custom field links
 adi_matrix_display_article_id => Display article ID#
 adi_matrix_duplicate_url_title => URL-only title already used
-adi_matrix_edit_preferences => Plugin preferences
+adi_matrix_edit_preferences => Prefs
 adi_matrix_edit_titles => Edit titles
 adi_matrix_expiry => Expiry
 adi_matrix_footer => Footer
@@ -3973,14 +3973,15 @@ END_SCRIPT
         }
 
         $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
-        $matrix_select = tag(
-            tag(gTxt('adi_matrix_select'), 'label', array('for' => 'matrix_id'))
+        $matrix_cpanel = tag(
+            href(gTxt('adi_matrix_edit_preferences'), '?event=prefs#prefs_group_adi_matrix', array('class' => 'txp-button'))
+            .tag(gTxt('adi_matrix_select'), 'label', array('for' => 'matrix_id'))
             .selectInput('matrix_id', $matrix_defined, ($adi_matrix_selected ? $adi_matrix_selected : 'new'), false, false, 'matrix_id')
         , 'div', array('class' => 'txp-control-panel'));
 
         // output table & input form
         echo hed(gTxt('adi_matrix_admin'), 1, array('class' => 'txp-heading'))
-            .$matrix_select
+            .$matrix_cpanel
             .form(
                 $this->admin_table($adi_matrix_list,$adi_matrix_cfs)
                 .eInput('adi_matrix_admin')
