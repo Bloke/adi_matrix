@@ -2558,11 +2558,18 @@ END_SCRIPT
         }
 
         $class = 'adi_matrix_matrix txp-list';
+        $editLink = '';
+
+        if (has_privs('adi_matrix_admin')) {
+            $editLink = tag(
+                eLink('adi_matrix_admin', '', 'adi_matrix_selected', $matrix_index, gTxt('edit'), '', '', '', 'txp-button')
+            , 'div', array('class' => 'txp-control-panel'));
+        }
 
         echo tag(
             form(
                 hed($adi_matrix_list[$matrix_index]['name'], '1', array('class' => 'txp-heading'))
-                .eLink('adi_matrix_admin', '', 'adi_matrix_selected', $matrix_index, gTxt('edit'))
+                .$editLink
                 .'<div class="txp-listtables'.($adi_matrix_list[$matrix_index]['scroll'] ? ' static' : '').'" tabindex="0" aria-label="List">'
                 .startTable('', '', $class)
                 .$table
