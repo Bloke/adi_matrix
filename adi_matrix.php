@@ -171,6 +171,7 @@ class adi_matrix
 {
     protected $event = 'adi_matrix';
     protected $privs = array();
+    protected $mgmt_privs = '1,2';
     protected $all_privs = '1,2,3,4,5,6'; // everybody
     protected $debug = 0; // general debuggy info
     protected $dump = 0; // dump of article data
@@ -212,8 +213,8 @@ class adi_matrix
         register_callback(array($this, 'lifecycle'), 'plugin_lifecycle.' . $this->event);
 
         // adi_matrix admin tab
-        add_privs('adi_matrix_admin'); // add priv group - defaults to priv '1' only
-        register_tab('extensions', 'adi_matrix_admin', gTxt('adi_article_matrix')); // add new tab under 'Extensions'
+        add_privs('adi_matrix_admin', $this->mgmt_privs);
+        register_tab('extensions', 'adi_matrix_admin', gTxt('adi_article_matrix'));
         register_callback(array($this, 'matrix_admin'), 'adi_matrix_admin');
 
         // look for glz_custom_fields
@@ -273,8 +274,8 @@ class adi_matrix
             3 => gTxt('adi_matrix_blank_url_title'),
         );
 
-        add_privs('prefs.' . $this->event, '1,2');
-        add_privs('plugin_prefs.' . $this->event, '1,2');
+        add_privs('prefs.' . $this->event, $this->mgmt_privs);
+        add_privs('plugin_prefs.' . $this->event, $this->mgmt_privs);
         register_callback(array($this, 'options'),'plugin_prefs.' . $this->event);
         register_callback(array($this, 'inject_prefs_js'), 'prefs');
 
@@ -489,7 +490,12 @@ END_SCRIPT
             $matrix_tab_name = $matrix['name'];
 
             if ($matrix['privs']) {
-                $priv_set = $this->privs[$matrix['privs']];
+                if (empty($this->privs[$matrix['privs']])) {
+                    // If not defined (i.e. a custom role), default to admin users + this role's level.
+                    $priv_set = $this->mgmt_privs . ',' . $matrix['privs'];
+                } else {
+                    $priv_set = $this->privs[$matrix['privs']];
+                }
             } else {
                 $priv_set = $this->all_privs; // everybody's welcome
             }
@@ -3180,15 +3186,10 @@ END_SCRIPT
         global $txp_groups;
 
         // to get: 1 => 'publisher', 2 => 'managing_editor' etc
-        $matrix_groups = $txp_groups;
+        $matrix_groups = get_groups();
 
         // lose index zero (none) - gets us a blank select option too!
         unset($matrix_groups[0]);
-
-        foreach ($matrix_groups as $index => $group) {
-            // to get: 1 => 'Publisher', 2 => 'Managing Editor' etc in the language 'de jour'
-            $matrix_groups[$index] = gTxt($group);
-        }
 
         return selectInput($select_name, $matrix_groups, $value, true);
     }
