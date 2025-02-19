@@ -364,6 +364,7 @@ class adi_matrix
   gap: 2em;
 }
 .adi_matrix_data_block p { margin: .25em 0; }
+#matrix_id { margin-inline-end: var(--txp-spacing, 1em); }
 
 /* matrix tabs */
  .adi_matrix_matrix :is(input[type=text]:not([maxlength]),select) {
@@ -3975,9 +3976,9 @@ END_SCRIPT
 
         $matrix_defined = array_combine(array_keys($adi_matrix_list), array_column($adi_matrix_list, 'name'));
         $matrix_cpanel = tag(
-            href(gTxt('adi_matrix_edit_preferences'), '?event=prefs#prefs_group_adi_matrix', array('class' => 'txp-button'))
-            .tag(gTxt('adi_matrix_select'), 'label', array('for' => 'matrix_id'))
+            tag(gTxt('adi_matrix_select'), 'label', array('for' => 'matrix_id'))
             .selectInput('matrix_id', $matrix_defined, ($adi_matrix_selected ? $adi_matrix_selected : 'new'), false, false, 'matrix_id')
+            .href(gTxt('adi_matrix_edit_preferences'), '?event=prefs#prefs_group_adi_matrix')
         , 'div', array('class' => 'txp-control-panel'));
 
         // output table & input form
