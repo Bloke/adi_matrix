@@ -1559,7 +1559,7 @@ END_SCRIPT
                     foreach ($value as $key => $val) {
                         if (strstr($key, 'custom_') && is_array($val)) {
                             // check for custom fields with multiple values e.g. arrays
-                            $val = implode($val,'|');
+                            $val = implode('|', $val);
                             $value[$key] = $val;
                         }
                     }
