@@ -368,7 +368,7 @@ class adi_matrix
 
 /* matrix tabs */
  .adi_matrix_matrix :is(input[type=text]:not([maxlength]),select) {
-    width: min(8ch + 5vw, 12em);
+    width: min(16ch + 5vw, 16em);
   }
  .adi_matrix_timestamp {  white-space:nowrap; }
  .adi_matrix_timestamp div { margin-block-end: .25em}
