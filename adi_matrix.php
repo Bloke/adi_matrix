@@ -1952,8 +1952,8 @@ END_SCRIPT
             }
 
             $class[] = 'adi_matrix_field_'.$field; // add field name to class
-            $class = ' class="'.implode(' ',$class).'"';
-            $$var = tag(elink($event,'','sort',$field,gTxt($field),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$class); // column heading/toggle sort
+            $attr = array('class' => implode(' ',$class), 'data-col' => $field);
+            $$var = tag(elink($event,'','sort',$field,gTxt($field),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$attr); // column heading/toggle sort
         }
 
         // standard field headings
@@ -1969,8 +1969,8 @@ END_SCRIPT
             }
 
             $class[] = 'adi_matrix_field_'.$field; // add field name to class
-            $class = ' class="'.implode(' ',$class).'"';
-            $adi_matrix_list[$matrix_index][$field] ? $$var = tag(elink($event,'','sort',$field,gTxt($field),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$class) : $$var = ''; // column heading/toggle sort
+            $attr = array('class' => implode(' ',$class), 'data-col' => $field);
+            $adi_matrix_list[$matrix_index][$field] ? $$var = tag(elink($event,'','sort',$field,gTxt($field),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$attr) : $$var = ''; // column heading/toggle sort
         }
 
         // custom field headings
@@ -1979,18 +1979,18 @@ END_SCRIPT
         foreach ($adi_matrix_cfs as $index => $cf_name) {
             $custom_x = 'custom_'.$index;
             $class = array();
-            if ($field == $sort) {
+            if ($cf_name == $sort) {
                 // sort value matches field
                 $dir == 'desc' ? $class[] = 'desc' : $class[] = 'asc'; // up/down arrow
             }
 
             $class[] = 'adi_matrix_field_'.$custom_x; // add field name to class
-            $class = ' class="'.implode(' ',$class).'"';
+            $attr = array('class' => implode(' ',$class), 'data-col' => $cf_name);
 
             if (array_key_exists($custom_x,$adi_matrix_list[$matrix_index])) {
                 // check that custom field is known to adi_matrix
                 if ($adi_matrix_list[$matrix_index][$custom_x]) {
-                    $cf_hcell .= tag(elink($event,'','sort',$custom_x,$cf_name,'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$class);
+                    $cf_hcell .= tag(elink($event,'','sort',$custom_x,$cf_name,'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$attr);
                 }
             }
         }
@@ -2001,13 +2001,14 @@ END_SCRIPT
         // "Show section" heading
         if ($sort == 'section') {
             // sort value matches field
-            $dir == 'desc' ? $class = ' class="desc section"' : $class = ' class="asc section"'; // up/down arrow
+            $dir == 'desc' ? $class = "desc section" : $class = "asc section"; // up/down arrow
         } else {
             // no arrow - sort set in admin
-            $class = ' class= "section"';
+            $class = "section";
         }
 
-        $show_section_hcell = tag(elink($event,'','sort','section',gTxt('section'),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$class);
+        $attr = array('class' => $class, 'data-col' => 'section');
+        $show_section_hcell = tag(elink($event,'','sort','section',gTxt('section'),'dir',($dir == 'asc' ? 'desc' : 'asc'),''),$tag,$attr);
 
         return
             tag(
@@ -2568,91 +2569,95 @@ END_SCRIPT
         $editLink = '';
 
         if (has_privs('adi_matrix_admin')) {
-            $editLink = tag(
-                eLink('adi_matrix_admin', '', 'adi_matrix_selected', $matrix_index, gTxt('edit'), '', '', '', 'txp-button')
-            , 'div', array('class' => 'txp-control-panel'));
+            $editLink = eLink('adi_matrix_admin', '', 'adi_matrix_selected', $matrix_index, gTxt('edit'), '', '', '', 'txp-button');
         }
 
+        echo '<div class="txp-layout">';
+        echo '<div class="txp-layout-4col-alt">';
+        echo hed($adi_matrix_list[$matrix_index]['name'], '1', array('class' => 'txp-heading'));
+        echo '</div>';
+
+        echo '<div class="txp-layout-4col-3span" id="adi_matrix_control"></div>';
+
         echo tag(
-            form(
-                hed($adi_matrix_list[$matrix_index]['name'], '1', array('class' => 'txp-heading'))
-                .$editLink
-                .'<div class="txp-listtables'.($adi_matrix_list[$matrix_index]['scroll'] ? ' static' : '').'" tabindex="0" aria-label="List">'
-                .startTable('', '', $class)
-                .$table
-                .endTable()
-                .'</div>'
-                .(empty($adi_matrix_articles) ?
-                    graf(tag(gTxt('no_articles_recorded'),'em'),' class="adi_matrix_none"')
-                    : ''
-                )
-                .($save_button ?
-                    tag(
-                        hInput('page',$page) // pass on paging
-                        .fInput("submit", "do_something", gTxt('save'), "publish")
-                        .eInput("adi_matrix_matrix_".$matrix_index).sInput("update"),
-                        'div',
-                        ' class="adi_matrix_button multi-edit"'
+            tag(
+                tag('<div class="txp-control-panel">'
+                        .$editLink
+                        .'</div>'
+                    , 'div'
+                    , array('class' => "txp-layout-cell-row txp-adi_matrix-head")
+                ).
+                form(
+                    '<div class="txp-listtables'.($adi_matrix_list[$matrix_index]['scroll'] ? ' static' : '').'" tabindex="0" aria-label="List">'
+                    .startTable('', '', $class)
+                    .$table
+                    .endTable()
+                    .'</div>'
+                    .(empty($adi_matrix_articles) ?
+                        graf(tag(gTxt('no_articles_recorded'),'em'),' class="adi_matrix_none"')
+                        : ''
                     )
-                    : ''
-                )
-                .tag(
-                    graf(
-                        gTxt('adi_matrix_default_sort')
-                        .sp.sp
-                        .elink(
-                            $event
-                            ,''
-                            ,'reset_sort'
-                            ,1
-                            ,$sort_options[$adi_matrix_list[$matrix_index]['sort']]
-                                .', '
-                                .$sort_dirs[$adi_matrix_list[$matrix_index]['dir']]
-                                .', '
-                                .$sort_types[$adi_matrix_list[$matrix_index]['sort_type']]
-                            ,'','','' // to override TXP 4.5 default title "Edit"
+                    .($save_button ?
+                        tag(
+                            hInput('page',$page) // pass on paging
+                            .fInput("submit", "do_something", gTxt('save'), "publish")
+                            .eInput("adi_matrix_matrix_".$matrix_index).sInput("update"),
+                            'div',
+                            ' class="adi_matrix_button multi-edit"'
                         )
-                        .br
-                        .gTxt('adi_matrix_sort_type')
-                        .sp.sp
-                        .strong(gTxt('adi_matrix_'.$sort_type))
-                        .' / '
-                        .elink(
-                            $event
-                            ,''
-                            ,'sort_type'
-                            ,($sort_type == 'numerical' ? 'alphabetical' : 'numerical')
-                            ,gTxt(($sort_type == 'numerical' ? 'adi_matrix_alphabetical' : 'adi_matrix_numerical'))
-                            ,'','','' // to override TXP 4.5 default title "Edit"
-                        )
+                        : ''
                     )
-                    ,'div',' class="adi_matrix_matrix_prefs"')
-                ,''
-                ,''
-                ,'post'
-                ,$class
-            )
-            , 'div', array('id' => 'txp-list-container'));
-
-        // flashing message
-        if ($errors) {
-            echo <<<END_SCRIPT
-                <script type="text/javascript">
-                <!--
-                $(document).ready( function(){
-                            $('#messagepane').fadeOut(800).fadeIn(800);
-                            $('#messagepane').fadeOut(800).fadeIn(800);
-                        } )
-                // -->
-                </script>
-    END_SCRIPT;
-        }
-
-        // grand total
-        echo graf(gTxt('adi_matrix_total_articles').sp.sp.$total, ' class="adi_matrix_grand_total"');
-
-        // paging
-        echo tag(
+                    .tag(
+                        graf(
+                            gTxt('adi_matrix_default_sort')
+                            .sp.sp
+                            .elink(
+                                $event
+                                ,''
+                                ,'reset_sort'
+                                ,1
+                                ,$sort_options[$adi_matrix_list[$matrix_index]['sort']]
+                                    .', '
+                                    .$sort_dirs[$adi_matrix_list[$matrix_index]['dir']]
+                                    .', '
+                                    .$sort_types[$adi_matrix_list[$matrix_index]['sort_type']]
+                                ,'','','' // to override TXP 4.5 default title "Edit"
+                            )
+                            .br
+                            .gTxt('adi_matrix_sort_type')
+                            .sp.sp
+                            .strong(gTxt('adi_matrix_'.$sort_type))
+                            .' / '
+                            .elink(
+                                $event
+                                ,''
+                                ,'sort_type'
+                                ,($sort_type == 'numerical' ? 'alphabetical' : 'numerical')
+                                ,gTxt(($sort_type == 'numerical' ? 'adi_matrix_alphabetical' : 'adi_matrix_numerical'))
+                                ,'','','' // to override TXP 4.5 default title "Edit"
+                            )
+                        )
+                        ,'div',' class="adi_matrix_matrix_prefs"')
+                    ,''
+                    ,''
+                    ,'post'
+                    ,$class
+                )
+                , 'div', array('id' => 'txp-list-container')
+            ). ($errors
+                ? <<<END_SCRIPT
+<script type="text/javascript">
+<!--
+$(document).ready( function(){
+            $('#messagepane').fadeOut(800).fadeIn(800);
+            $('#messagepane').fadeOut(800).fadeIn(800);
+        } )
+// -->
+</script>
+END_SCRIPT
+                : '')
+            . graf(gTxt('adi_matrix_total_articles').sp.sp.$total, ' class="adi_matrix_grand_total"')
+            . tag(
                 // "num articles per page" select
                 ($this->is_txp470 ? Txp::get('\Textpattern\Admin\Paginator', $event, $step)->render($pageby) : pageby_form($event, $pageby))
                 // prev/next page buttons (if muliple pages)
@@ -2660,7 +2665,9 @@ END_SCRIPT
                 .($total > $pageby ? nav_form($event, $page, $num_pages, $sort, $dir, '', '', $total, $pageby, '') : '')
                 ,'div'
                 ,' id="list_navigation" class="txp-layout-cell-row"'
-            );
+            )
+            , 'div', array('id' => 'adi_matrix_container', 'class' => 'txp-layout-1col'));
+        echo '</div>';
 
         if ($this->debug) {
             $this->debug($adi_matrix_articles, $matrix_index);
