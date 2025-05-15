@@ -1681,7 +1681,7 @@ END_SCRIPT
                     if (($field == 'posted') || ($field == 'expires')) {
                         // date/time requires special attention (because DB time may be different to TXP human time,
                         // so direct comparison not valid)
-                        if (array_key_exists('reset_time',$new_value)) {
+                        if (array_key_exists('reset_time',$new_value) || array_key_exists('expire_now',$new_value)) {
                             $equal = false; // force inequality - "NOW()" time will be set in database update
                             if ($this->debug) {
                                 echo 'id='.$id.', field='.$field.' (RESET)';
@@ -1765,6 +1765,10 @@ END_SCRIPT
                     if ($field == 'posted') {
                         if (array_key_exists('reset_time',$value)) {
                             $$field = date('Y-m-d H:i:s',time()); // have to predict the reset date/time (Article tab does it this way too!)
+                        }
+                    } elseif ($field == 'expires') {
+                        if (array_key_exists('expire_now',$value)) {
+                            $$field = date('Y-m-d H:i:s',time());
                         }
                     }
 
