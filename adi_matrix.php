@@ -263,9 +263,6 @@ class adi_matrix
             $adi_matrix_cfs[$index] = $prefs['custom_'.$index.'_set']; // index = custom fields number, value = custom field title
         }
 
-        // build a picture of article categories
-        $this->categories = $this->get_categories(getTree('root', 'article'));
-
         // validation errors
         $this->adi_matrix_validation_errors = array(
             0 => gTxt('adi_matrix_invalid_timestamp'),
@@ -310,6 +307,8 @@ class adi_matrix
         }
 
         if (strstr($event,'adi_matrix_matrix_')) {
+            // build a picture of article categories
+            $this->categories = $this->get_categories(getTree('root', 'article'));
             register_callback(array($this, 'matrix_script'),'admin_side','head_end');
         }
 
@@ -3015,7 +3014,7 @@ END_SCRIPT
     }
 
     // generate a tree of parent/child relationships
-    public function cat_tree($list,$parent='root')
+    public function cat_tree($list, $parent = 'root')
     {
         $return = array();
 
