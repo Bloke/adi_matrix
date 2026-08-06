@@ -3146,7 +3146,7 @@ END_SCRIPT
     {
         $opts = $this->get_statuses();
 
-        return selectInput($select_name, $opts, $value, true);
+        return selectInput($select_name, $opts, $value, false);
     }
 
     // generate timestamp popup list for admin settings table
@@ -3367,7 +3367,7 @@ END_SCRIPT
         $res = false;
 
         foreach ($_POST as $index => $value) {
-            $data = doArray($value,'doStripTags'); // strip out monkey business
+            $data = doArray($value, 'doStripTags'); // strip out monkey business
 
             $this_index = explode('_',$index);
 
@@ -3963,7 +3963,7 @@ END_SCRIPT
             'publish' => '0',
             'show_section' => '0',
             'cf_links' => '',
-            'tab' => '0',
+            'tab' => 'content',
             'criteria_section' => '',
             'criteria_category' => '',
             'criteria_descendent_cats' => '0',
@@ -4050,11 +4050,12 @@ END_SCRIPT
     public function get_statuses()
     {
         $opts = array(
-            1 => gTxt('draft'),
-            2 => gTxt('hidden'),
-            3 => gTxt('pending'),
-            4 => gTxt('live'),
-            5 => gTxt('sticky'),
+            0 => gTxt('any'),
+            STATUS_DRAFT => gTxt('draft'),
+            STATUS_HIDDEN => gTxt('hidden'),
+            STATUS_PENDING => gTxt('pending'),
+            STATUS_LIVE => gTxt('live'),
+            STATUS_STICKY => gTxt('sticky'),
         );
 
         return $opts;
