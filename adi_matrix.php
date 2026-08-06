@@ -1071,6 +1071,8 @@ END_SCRIPT
             $this->debug
         );
 
+        callback_event($this->event, 'article_saved', false, $data);
+
         if ($new_status >= STATUS_LIVE && $old_status < STATUS_LIVE) {
             do_pings();
         }
@@ -1454,6 +1456,8 @@ END_SCRIPT
             );
 
             if ($ok) {
+                callback_event($this->event, 'article_posted', false, $data);
+
                 if ($Status >= STATUS_LIVE) {
                     do_pings();
                     update_lastmod();
