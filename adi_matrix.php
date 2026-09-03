@@ -597,6 +597,8 @@ END_SCRIPT
     // mostly ripped off from doArticles() in publish.php
     public function build_where($criteria=array())
     {
+        global $txp_user;
+
         if ($this->debug) {
             echo "<b>Criteria:</b>";
             dmp($criteria);
@@ -756,7 +758,7 @@ END_SCRIPT
             default:
                 // custom_x will fall through to here
                 // find out if column (glz custom field probably) still exists
-                $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('textpattern')." LIKE '$sort'",$this->debug); 
+                $rs = safe_query('SHOW FIELDS FROM '.safe_pfx('textpattern')." LIKE '$sort'",$this->debug);
                 $a = nextRow($rs);
 
                 if (empty($a)) {
@@ -1716,7 +1718,7 @@ END_SCRIPT
 
                     if ($this->debug) {
                         if ($equal) {
-                            echo " (EQUAL)".br; 
+                            echo " (EQUAL)".br;
                         } else {
                             echo " <b>(NOT EQUAL)</b>".br;
                         }
@@ -2484,7 +2486,7 @@ END_SCRIPT
         $page = gps('page'); // get page number
 
         // get current page size (paging default, if not saved as pref)
-        $pageby = get_pref($event.'_pageby',($this->is_txp470 ? 12 : 15)); 
+        $pageby = get_pref($event.'_pageby',($this->is_txp470 ? 12 : 15));
         $total = safe_count('textpattern',"$where");
         list($page,$offset,$num_pages) = pager($total,$pageby,$page);
 
@@ -3592,7 +3594,7 @@ END_SCRIPT
                         .inputLabel($fieldRef."[sort]", selectInput($fieldRef."[sort]", $sort_options,$matrix['sort'], false), 'adi_matrix_sort')
                         .inputLabel($fieldRef."[dir]", selectInput($fieldRef."[dir]", $sort_dirs,$matrix['dir'], false), 'adi_matrix_sort_direction')
                         .inputLabel($fieldRef."[sort_type]", selectInput($fieldRef."[sort_type]", $sort_types, $matrix['sort_type'],false), 'adi_matrix_sort_type')
-                        .inputLabel($fieldRef."[user]", $this->user_popup($fieldRef."[user]", $matrix['user']), 'adi_matrix_user')
+                        .inputLabel($fieldRef."[user]", $this->user_popup($fieldRef."[user]", $matrix['user'], true), 'adi_matrix_user')
                         .inputLabel($fieldRef."[privs]", $this->privs_popup($fieldRef."[privs]",$matrix['privs']), 'adi_matrix_privs')
                         .inputLabel($fieldRef."[tab]", $this->tab_popup($fieldRef."[tab]", $matrix['tab']), 'adi_matrix_tab')
                         .inputLabel($fieldRef."[scroll]", yesnoRadio($fieldRef."[scroll]", $matrix['scroll']), 'adi_matrix_scroll')
